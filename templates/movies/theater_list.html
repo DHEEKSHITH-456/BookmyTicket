@@ -1,0 +1,321 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Book Tickets for {{ movie.name }} - BookMyTicket{% endblock %}
+
+{% block content %}
+<div class="bms-theaters-wrapper">
+    
+    <!-- Top Movie Sticky Overview Header Bar -->
+    <div class="movie-spotlight-bar">
+        <div class="spotlight-container">
+            <h1 class="spotlight-movie-title">{{ movie.name }}</h1>
+            <div class="spotlight-meta-tags">
+                <span class="meta-badge-item">{{ movie.genre|default:"Action / Drama" }}</span>
+                <span class="meta-divider">•</span>
+                <span class="language-badge">2D / UA</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Body Area -->
+    <div class="theaters-layout-container">
+        <div class="theater-listings-header">
+            <h2 class="listings-title-heading"><i class="fas fa-building hospitality-icon"></i> Available Cinemas</h2>
+        </div>
+
+        <!-- Venue Listing Cards Container -->
+        <div class="theaters-cards-stack">
+            {% for theater in theaters %}
+                <div class="bms-theater-card">
+                    <div class="theater-info-side">
+                        <div class="heart-icon-wrapper">
+                            <i class="far fa-heart bookmark-heart"></i>
+                        </div>
+                        <div class="theater-text-details">
+                            <h3 class="theater-title-name">{{ theater.name }}</h3>
+                            <p class="theater-location-subtext">
+                                <i class="fas fa-map-marker-alt"></i> {{ theater.location|default:"Digital Cinema Screen Layouts, Metro Area" }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- App Styled Interactive Showtimes Layout Blocks -->
+                    <div class="theater-showtimes-side">
+                        <div class="showtime-pill-grid">
+                            <!-- Direct operational link targeting your app's seat layout selection view routing -->
+                            <a href="{% url 'seat_selection' theater.id %}" class="showtime-anchor-node">
+                                <span class="time-stamp">10:30 AM</span>
+                                <span class="screen-type-tag">Dolby 7.1</span>
+                            </a>
+                            <a href="{% url 'seat_selection' theater.id %}" class="showtime-anchor-node">
+                                <span class="time-stamp">02:15 PM</span>
+                                <span class="screen-type-tag">4K Laser</span>
+                            </a>
+                            <a href="{% url 'seat_selection' theater.id %}" class="showtime-anchor-node">
+                                <span class="time-stamp">06:45 PM</span>
+                                <span class="screen-type-tag">Dolby Atmos</span>
+                            </a>
+                            <a href="{% url 'seat_selection' theater.id %}" class="showtime-anchor-node">
+                                <span class="time-stamp">09:30 PM</span>
+                                <span class="screen-type-tag">2D Digital</span>
+                            </a>
+                        </div>
+                        <div class="cancellation-policy-tag">
+                            <i class="fas fa-info-circle"></i> Cancellation Available
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="bms-empty-theaters-box">
+                    <i class="fas fa-store-alt-slash empty-icon-box"></i>
+                    <h3>No Theaters Playing This Movie</h3>
+                    <p>There are currently no active screen schedules or theater allocations configured for this movie entity track.</p>
+                    <a href="{% url 'movie_list' %}" class="bms-back-home-btn">Back to Home</a>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+
+<!-- BookMyShow App Inspired Light Theaters Stylesheet -->
+<style>
+    /* Light Mode Structure Framework Context */
+    .bms-theaters-wrapper {
+        background-color: #f2f5f9; /* Soft pale application background canvas */
+        color: #333333;
+        font-family: 'Inter', 'Segoe UI', sans-serif;
+        min-height: 100vh;
+        padding-bottom: 60px;
+    }
+
+    /* Top Premium Sticky Header Panel style rules */
+    .movie-spotlight-bar {
+        background-color: #333545; /* Dark slate backdrop accent contrast panel */
+        color: #ffffff;
+        padding: 24px 20px;
+        text-align: left;
+    }
+
+    .spotlight-container {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .spotlight-movie-title {
+        font-size: 32px;
+        font-weight: 700;
+        margin: 0 0 8px 0;
+        letter-spacing: -0.5px;
+    }
+
+    .spotlight-meta-tags {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+        color: #9aa0b4;
+    }
+
+    .meta-badge-item {
+        border: 1px solid #4f536e;
+        padding: 2px 10px;
+        border-radius: 12px;
+        color: #ffffff;
+        font-size: 12px;
+        background-color: rgba(255,255,255,0.05);
+    }
+
+    .language-badge {
+        font-weight: 600;
+        color: #ffffff;
+    }
+
+    /* Main Component Area Layout rules */
+    .theaters-layout-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 30px 20px;
+    }
+
+    .theater-listings-header {
+        margin-bottom: 20px;
+        text-align: left;
+    }
+
+    .listings-title-heading {
+        font-size: 18px;
+        font-weight: 700;
+        color: #222222;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .hospitality-icon {
+        color: #7e8599;
+    }
+
+    /* Stack list of BookMyShow style individual elements */
+    .theaters-cards-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .bms-theater-card {
+        background: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        border: 1px solid #e5e9f0;
+        display: flex;
+        padding: 24px;
+        align-items: center;
+        transition: box-shadow 0.2s;
+    }
+
+    .bms-theater-card:hover {
+        box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    }
+
+    /* Left Side: Text and Location elements */
+    .theater-info-side {
+        flex: 1;
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+        text-align: left;
+        padding-right: 20px;
+        border-right: 1px dashed #e5e9f0;
+    }
+
+    .bookmark-heart {
+        color: #9aa1b1;
+        font-size: 16px;
+        cursor: pointer;
+        margin-top: 4px;
+        transition: color 0.2s;
+    }
+
+    .bookmark-heart:hover {
+        color: #F84464;
+    }
+
+    .theater-title-name {
+        font-size: 16px;
+        font-weight: 600;
+        color: #222222;
+        margin: 0 0 6px 0;
+    }
+
+    .theater-location-subtext {
+        font-size: 13px;
+        color: #666666;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .theater-location-subtext i {
+        color: #a0a5b5;
+    }
+
+    /* Right Side: Grid timing blocks attributes styling */
+    .theater-showtimes-side {
+        flex: 1.8;
+        padding-left: 30px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        text-align: left;
+    }
+
+    .showtime-pill-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    /* Interactive button node box links layout framework mapping */
+    .showtime-anchor-node {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #c3cad9;
+        border-radius: 4px;
+        background: #ffffff;
+        min-width: 100px;
+        padding: 8px 12px;
+        text-decoration: none;
+        transition: border-color 0.2s, background 0.2s;
+    }
+
+    .showtime-anchor-node:hover {
+        border-color: #F84464; /* Highlight matching app border color focus rules */
+    }
+
+    .time-stamp {
+        font-size: 14px;
+        font-weight: 500;
+        color: #4abd5d; /* Classic green showtime active alert color text */
+    }
+
+    .screen-type-tag {
+        font-size: 10px;
+        color: #717b8c;
+        margin-top: 2px;
+        text-transform: uppercase;
+        font-weight: 600;
+    }
+
+    .cancellation-policy-tag {
+        font-size: 12px;
+        color: #ff9f43; /* Amber alert icon styling rules context */
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-weight: 500;
+    }
+
+    /* Empty state layout parameters mapping items block */
+    .bms-empty-theaters-box {
+        text-align: center;
+        background: #ffffff;
+        padding: 60px 20px;
+        border-radius: 8px;
+        border: 1px dashed #c3cad9;
+    }
+
+    .empty-icon-box {
+        font-size: 48px;
+        color: #a0a5b5;
+        margin-bottom: 16px;
+    }
+
+    .bms-empty-theaters-box h3 { font-size: 18px; margin: 0 0 6px 0; color: #222222; }
+    .bms-empty-theaters-box p { color: #666666; font-size: 14px; margin: 0 0 24px 0; }
+
+    .bms-back-home-btn {
+        display: inline-block;
+        background: #F84464; /* BookMyShow Pink-Red primary color selector */
+        color: #ffffff;
+        text-decoration: none;
+        padding: 10px 24px;
+        border-radius: 4px;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    /* Responsive Flexbox collapse for small viewports and handheld devices */
+    @media (max-width: 768px) {
+        .bms-theater-card { flex-direction: column; align-items: flex-start; padding: 18px; }
+        .theater-info-side { border-right: none; border-bottom: 1px dashed #e5e9f0; padding-right: 0; padding-bottom: 14px; width: 100%; }
+        .theater-showtimes-side { padding-left: 0; padding-top: 14px; width: 100%; }
+        .spotlight-movie-title { font-size: 24px; }
+    }
+</style>
+{% endblock %}

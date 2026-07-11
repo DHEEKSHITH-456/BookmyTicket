@@ -1,0 +1,258 @@
+{% extends 'users/basic.html' %}
+
+{% block title %}Login - BookMyTicket{% endblock %}
+
+{% block content %}
+<div class="login-wrapper">
+    <div class="login-card">
+        <div class="login-header">
+            <h2>Welcome Back</h2>
+            <p>Sign in to your account to book your tickets</p>
+        </div>
+        
+        <!-- Notice we changed form.username to forms.username to match your views.py dictionary key -->
+        <form method="POST" action="{% url 'login' %}" class="login-form">
+            {% csrf_token %}
+            
+            <!-- Username Field -->
+            <div class="input-group-container">
+                <label for="{{ forms.username.id_for_label }}" class="field-label">Username</label>
+                <div class="input-field-wrapper">
+                    <span class="field-icon">
+                        <i class="fas fa-user"></i>
+                    </span>
+                    {{ forms.username }}
+                </div>
+            </div>
+            
+            <!-- Password Field -->
+            <div class="input-group-container">
+                <label for="{{ forms.password.id_for_label }}" class="field-label">Password</label>
+                <div class="input-field-wrapper">
+                    <span class="field-icon">
+                        <i class="fas fa-lock"></i>
+                    </span>
+                    {{ forms.password }}
+                    <button type="button" id="togglePassword" class="password-toggle-btn">
+                        <i class="fas fa-eye" id="toggleIcon"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Actions & Links -->
+            <div class="form-options">
+                <a href="{% url 'password_reset' %}" class="forgot-link">Forgot password?</a>
+            </div>
+            
+            <button type="submit" class="submit-btn">
+                <i class="fas fa-sign-in-alt me-2"></i> Login
+            </button>
+        </form>
+        
+        <div class="login-footer-links">
+            <p>Don't have an account? <a href="{% url 'register' %}" class="register-link">Register here</a></p>
+        </div>
+    </div>
+</div>
+
+<!-- Embedded styling sheet layout rules -->
+<style>
+    .login-wrapper { min-height: calc(100vh - 160px); display: flex; justify-content: center; align-items: center; background-color: #f8f9fa; padding: 40px 20px; font-family: 'Segoe UI', sans-serif; }
+    .login-card { background: #ffffff; max-width: 420px; width: 100%; padding: 40px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08); }
+    .login-header h2 { margin: 0 0 8px 0; color: #212529; font-size: 28px; font-weight: 700; text-align: center; }
+    .login-header p { margin: 0 0 30px 0; color: #6c757d; font-size: 14px; text-align: center; }
+    .input-group-container { margin-bottom: 20px; text-align: left; }
+    .field-label { display: block; font-size: 14px; font-weight: 600; color: #495057; margin-bottom: 8px; }
+    .input-field-wrapper { display: flex; align-items: center; position: relative; border: 1px solid #ced4da; border-radius: 8px; background: #ffffff; transition: border-color 0.2s, box-shadow 0.2s; }
+    .input-field-wrapper:focus-within { border-color: #df3848; box-shadow: 0 0 0 3px rgba(223, 56, 72, 0.15); }
+    .field-icon { padding: 12px 14px; color: #a8aeb4; display: flex; align-items: center; justify-content: center; min-width: 45px; }
+    .form-input-element { width: 100%; border: none !important; outline: none !important; padding: 12px 40px 12px 0; font-size: 15px; color: #212529; background: transparent; }
+    .password-toggle-btn { position: absolute; right: 12px; background: none; border: none; color: #6c757d; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; }
+    .password-toggle-btn:hover { color: #212529; }
+    .form-options { display: flex; justify-content: flex-end; margin-bottom: 25px; }
+    .forgot-link, .register-link { color: #df3848; font-size: 14px; text-decoration: none; font-weight: 500; }
+    .forgot-link:hover, .register-link:hover { text-decoration: underline; }
+    .submit-btn { width: 100%; padding: 14px; background-color: #df3848; color: #ffffff; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background-color 0.2s; }
+    .submit-btn:hover { background-color: #c42e3c; }
+    .login-footer-links { margin-top: 25px; text-align: center; font-size: 14px; color: #6c757d; }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function(){ 
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordField = document.getElementById('{{ forms.password.id_for_label }}');
+        const toggleIcon = document.getElementById('toggleIcon');
+
+        // Dynamically applies clean CSS classes to raw fields 
+        const usernameInput = document.getElementById('{{ forms.username.id_for_label }}');
+        if (usernameInput) usernameInput.classList.add('form-input-element');
+        if (passwordField) passwordField.classList.add('form-input-element');
+
+        togglePassword.addEventListener('click', function() {
+            const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordField.setAttribute('type', type);
+            toggleIcon.classList.toggle('fa-eye');
+            toggleIcon.classList.toggle('fa-eye-slash');
+        });
+    });
+</script>
+{% endblock %}
+
+<style>
+    /* Container to center the entire card on the page */
+    .login-wrapper {
+        min-height: calc(100vh - 160px); /* Adjusts based on your header/footer sizes */
+        display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f8f9fa;
+    padding: 40px 20px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Card layout wrapper */
+.login-card {
+    background: #ffffff;
+    max-width: 420px;
+    width: 100%;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+/* Header inside card */
+.login-header h2 {
+    margin: 0 0 8px 0;
+    color: #212529;
+    font-size: 28px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.login-header p {
+    margin: 0 0 30px 0;
+    color: #6c757d;
+    font-size: 14px;
+    text-align: center;
+}
+
+/* Input layout grouping */
+.input-group-container {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.field-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 8px;
+}
+
+/* Wrapper to hold icon and raw input box horizontally */
+.input-field-wrapper {
+    display: flex;
+    align-items: center;
+    position: relative;
+    border: 1px solid #ced4da;
+    border-radius: 8px;
+    background: #ffffff;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input-field-wrapper:focus-within {
+    border-color: #df3848; /* Matches your red BookMyTicket logo brand color */
+    box-shadow: 0 0 0 3px rgba(223, 56, 72, 0.15);
+}
+
+/* Icon positioning */
+.field-icon {
+    padding: 12px 14px;
+    color: #a8aeb4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 45px;
+}
+
+/* Injected class style targeting Django raw native input fields */
+.form-input-element {
+    width: 100%;
+    border: none !important;
+    outline: none !important;
+    padding: 12px 40px 12px 0; /* Right padding leaves space for password view button */
+    font-size: 15px;
+    color: #212529;
+    background: transparent;
+}
+
+/* Password visibility button overlay */
+.password-toggle-btn {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.password-toggle-btn:hover {
+    color: #212529;
+}
+
+/* Form actions */
+.form-options {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 25px;
+}
+
+.forgot-link, .register-link {
+    color: #df3848;
+    font-size: 14px;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.forgot-link:hover, .register-link:hover {
+    text-decoration: underline;
+}
+
+/* Premium submit action button */
+.submit-btn {
+    width: 100%;
+    padding: 14px;
+    background-color: #df3848;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background-color 0.2s;
+}
+
+.submit-btn:hover {
+    background-color: #c42e3c;
+}
+
+/* Bottom spacing segment */
+.login-footer-links {
+    margin-top: 25px;
+    text-align: center;
+    font-size: 14px;
+    color: #6c757d;
+}
+
+.login-footer-links p {
+    margin: 0;
+}

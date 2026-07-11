@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="booking-container">
+    <h1>Seats for {{ theater.name }} - {{ theater.movie.name }}</h1>
+    {% if error_message %}
+        <div class="alert alert-danger">{{ error_message }}</div>
+    {% endif %}
+    <form method="post">
+        {% csrf_token %}
+        <div class="screen">SCREEN</div>
+        <ul class="seating-grid">
+            {% for seat in seats %}
+                <li class="seat-item">
+                    {% if not seat.is_booked %}
+                        <input type="checkbox" name="seats" value="{{ seat.id }}" id="seat-{{ seat.id }}"
+                            {% if seat.id|stringformat:"s" in selected_seats %}checked{% endif %}>
+                        <label for="seat-{{ seat.id }}" class="seat available">
+                            {{ seat.seat_number }}
+                        </label>
+                    {% else %}
+                        <span class="seat booked">{{ seat.seat_number }}</span>
+                    {% endif %}
+                </li>
+            {% empty %}
+                <li>No seats available.</li>
+            {% endfor %}
+        </ul>
+        <button type="submit" class="btn btn-primary">Book Selected Seats</button>
+    </form>
+    <div class="legend">
+        <span class="legend-item available">Available</span>
+        <span class="legend-item booked">Booked</span>
+    </div>
+</div>
+<style>
+.booking-container {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 20px;
+    text-align: center;
+}
+.screen {
+    background-color: #ccc;
+    padding: 10px;
+    margin-bottom: 20px;
+    font-weight: bold;
+    display: inline-block;
+    min-width: 240px;
+}
+.seating-grid {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+.seat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.seat {
+    display: inline-block;
+    padding: 14px 18px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #fff;
+    min-width: 48px;
+    text-align: center;
+    font-weight: 600;
+}
+.seat.available {
+    background-color: #28a745;
+    cursor: pointer;
+}
+.seat.booked {
+    background-color: #dc3545;
+    cursor: not-allowed;
+}
+input[type='checkbox'] {
+    display: none;
+}
+input[type='checkbox'] + label.seat.available {
+    background-color: #28a745;
+}
+input[type='checkbox']:checked + label.seat.available {
+    background-color: #0056b3;
+}
+.legend {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
+}
+.legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: 6px;
+    color: #fff;
+}
+.legend-item.available {
+    background-color: #28a745;
+}
+.legend-item.booked {
+    background-color: #dc3545;
+}
+</style>
+{% endblock %}
