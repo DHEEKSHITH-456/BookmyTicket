@@ -1,113 +1,435 @@
-{% extends 'base.html' %}
+{% extends 'users/basic.html' %}
+
+{% block title %}Select Seats — {{ theater.movie.name }} | BookMyTicket{% endblock %}
 
 {% block content %}
-<div class="booking-container">
-    <h1>Seats for {{ theater.name }} - {{ theater.movie.name }}</h1>
-    {% if error_message %}
-        <div class="alert alert-danger">{{ error_message }}</div>
-    {% endif %}
-    <form method="post">
-        {% csrf_token %}
-        <div class="screen">SCREEN</div>
-        <ul class="seating-grid">
-            {% for seat in seats %}
-                <li class="seat-item">
-                    {% if not seat.is_booked %}
-                        <input type="checkbox" name="seats" value="{{ seat.id }}" id="seat-{{ seat.id }}"
-                            {% if seat.id|stringformat:"s" in selected_seats %}checked{% endif %}>
-                        <label for="seat-{{ seat.id }}" class="seat available">
-                            {{ seat.seat_number }}
-                        </label>
-                    {% else %}
-                        <span class="seat booked">{{ seat.seat_number }}</span>
-                    {% endif %}
-                </li>
-            {% empty %}
-                <li>No seats available.</li>
-            {% endfor %}
-        </ul>
-        <button type="submit" class="btn btn-primary">Book Selected Seats</button>
-    </form>
-    <div class="legend">
-        <span class="legend-item available">Available</span>
-        <span class="legend-item booked">Booked</span>
+<div class="ss-wrapper">
+
+    <!-- Movie/Theater Info Bar -->
+    <div class="ss-info-bar">
+        <div class="ss-info-inner">
+            <div class="ss-info-left">
+                <h2 class="ss-movie-name">{{ theater.movie.name }}</h2>
+                <p class="ss-theater-name">
+                    <i class="fas fa-map-marker-alt"></i> {{ theater.name }} &bull; {{ theater.location|default:"Cinema Complex" }}
+                </p>
+            </div>
+            <div class="ss-info-right">
+                <span class="ss-showtime-badge"><i class="far fa-clock"></i> {{ theater.time|time:"g:i A" }}</span>
+            </div>
+        </div>
     </div>
+
+    {% if error_message %}
+    <div class="ss-alert">
+        <i class="fas fa-exclamation-triangle"></i> {{ error_message }}
+    </div>
+    {% endif %}
+
+    <form method="post" id="seatForm">
+        {% csrf_token %}
+
+        <div class="ss-cinema-area">
+            <!-- Screen -->
+            <div class="ss-screen-container">
+                <div class="ss-screen">
+                    <span>SCREEN</span>
+                </div>
+                <div class="ss-screen-glow"></div>
+            </div>
+
+            <!-- Seat Grid -->
+            <div class="ss-seat-grid">
+                {% for seat in seats %}
+                <div class="ss-seat-item">
+                    {% if not seat.is_booked %}
+                    <input type="checkbox" name="seats" value="{{ seat.id }}" id="seat-{{ seat.id }}"
+                        {% if seat.id|stringformat:"s" in selected_seats %}checked{% endif %}>
+                    <label for="seat-{{ seat.id }}" class="ss-seat ss-available">
+                        <i class="fas fa-couch"></i>
+                        <span>{{ seat.seat_number }}</span>
+                    </label>
+                    {% else %}
+                    <span class="ss-seat ss-booked">
+                        <i class="fas fa-couch"></i>
+                        <span>{{ seat.seat_number }}</span>
+                    </span>
+                    {% endif %}
+                </div>
+                {% empty %}
+                <div class="ss-no-seats">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <p>No seats configured for this theater.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="ss-legend">
+            <div class="ss-legend-item">
+                <span class="ss-legend-box ss-legend-available"></span>
+                <span>Available</span>
+            </div>
+            <div class="ss-legend-item">
+                <span class="ss-legend-box ss-legend-selected"></span>
+                <span>Selected</span>
+            </div>
+            <div class="ss-legend-item">
+                <span class="ss-legend-box ss-legend-booked"></span>
+                <span>Booked</span>
+            </div>
+        </div>
+
+        <!-- Booking Summary & CTA -->
+        <div class="ss-summary-bar">
+            <div class="ss-summary-inner">
+                <div class="ss-summary-left">
+                    <span class="ss-summary-label">Selected Seats:</span>
+                    <span class="ss-seat-count" id="seatCount">0</span>
+                </div>
+                <button type="submit" class="ss-pay-btn" id="payBtn">
+                    <i class="fas fa-ticket-alt"></i> Proceed to Book
+                </button>
+            </div>
+        </div>
+    </form>
 </div>
+
 <style>
-.booking-container {
-    max-width: 760px;
-    margin: 0 auto;
-    padding: 20px;
-    text-align: center;
-}
-.screen {
-    background-color: #ccc;
-    padding: 10px;
-    margin-bottom: 20px;
-    font-weight: bold;
-    display: inline-block;
-    min-width: 240px;
-}
-.seating-grid {
-    list-style: none;
-    padding: 0;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 10px;
-    margin-bottom: 20px;
-}
-.seat-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-.seat {
-    display: inline-block;
-    padding: 14px 18px;
-    border-radius: 8px;
-    text-decoration: none;
-    color: #fff;
-    min-width: 48px;
-    text-align: center;
-    font-weight: 600;
-}
-.seat.available {
-    background-color: #28a745;
-    cursor: pointer;
-}
-.seat.booked {
-    background-color: #dc3545;
-    cursor: not-allowed;
-}
-input[type='checkbox'] {
-    display: none;
-}
-input[type='checkbox'] + label.seat.available {
-    background-color: #28a745;
-}
-input[type='checkbox']:checked + label.seat.available {
-    background-color: #0056b3;
-}
-.legend {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin-top: 20px;
-}
-.legend-item {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 14px;
-    border-radius: 6px;
-    color: #fff;
-}
-.legend-item.available {
-    background-color: #28a745;
-}
-.legend-item.booked {
-    background-color: #dc3545;
-}
+    .ss-wrapper {
+        background: #0d0d1a;
+        min-height: 100vh;
+        font-family: 'Inter', sans-serif;
+        color: #e0e0e0;
+        padding-bottom: 100px;
+    }
+
+    /* Info Bar */
+    .ss-info-bar {
+        background: linear-gradient(135deg, #1a1a2e, #16213e);
+        padding: 20px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .ss-info-inner {
+        max-width: 860px;
+        margin: 0 auto;
+        padding: 0 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .ss-movie-name {
+        color: #fff;
+        font-size: 22px;
+        font-weight: 700;
+        margin: 0 0 6px;
+    }
+
+    .ss-theater-name {
+        color: rgba(255,255,255,0.5);
+        font-size: 13px;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .ss-theater-name i {
+        color: #F84464;
+    }
+
+    .ss-showtime-badge {
+        background: rgba(248, 68, 100, 0.15);
+        color: #F84464;
+        font-size: 14px;
+        font-weight: 600;
+        padding: 8px 18px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid rgba(248, 68, 100, 0.2);
+    }
+
+    /* Alert */
+    .ss-alert {
+        max-width: 860px;
+        margin: 16px auto;
+        padding: 12px 20px;
+        background: rgba(220, 53, 69, 0.15);
+        border: 1px solid rgba(220, 53, 69, 0.25);
+        border-radius: 8px;
+        color: #ff6b81;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* Cinema Area */
+    .ss-cinema-area {
+        max-width: 860px;
+        margin: 30px auto;
+        padding: 0 20px;
+    }
+
+    /* Screen */
+    .ss-screen-container {
+        text-align: center;
+        margin-bottom: 40px;
+        position: relative;
+    }
+
+    .ss-screen {
+        width: 65%;
+        margin: 0 auto;
+        padding: 10px 0;
+        background: linear-gradient(to bottom, rgba(255,255,255,0.12), rgba(255,255,255,0.03));
+        border-radius: 0 0 50% 50% / 0 0 100% 100%;
+        color: rgba(255,255,255,0.4);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 4px;
+        text-transform: uppercase;
+        border-bottom: 3px solid rgba(255,255,255,0.15);
+    }
+
+    .ss-screen-glow {
+        width: 70%;
+        height: 30px;
+        margin: 0 auto;
+        background: radial-gradient(ellipse at center, rgba(255,255,255,0.06) 0%, transparent 70%);
+        margin-top: -5px;
+    }
+
+    /* Seat Grid */
+    .ss-seat-grid {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+        padding: 0 10px;
+    }
+
+    .ss-seat-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .ss-seat {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 52px;
+        height: 52px;
+        border-radius: 8px;
+        font-size: 10px;
+        font-weight: 600;
+        transition: all 0.2s;
+        gap: 2px;
+        cursor: pointer;
+    }
+
+    .ss-seat i {
+        font-size: 18px;
+    }
+
+    .ss-available {
+        background: rgba(74, 189, 93, 0.15);
+        border: 1px solid rgba(74, 189, 93, 0.3);
+        color: #4abd5d;
+    }
+
+    .ss-available:hover {
+        background: rgba(74, 189, 93, 0.25);
+        border-color: #4abd5d;
+        transform: scale(1.08);
+    }
+
+    .ss-booked {
+        background: rgba(220, 53, 69, 0.12);
+        border: 1px solid rgba(220, 53, 69, 0.2);
+        color: rgba(220, 53, 69, 0.4);
+        cursor: not-allowed;
+    }
+
+    /* Hidden checkbox selection styling */
+    input[type='checkbox'] {
+        display: none;
+    }
+
+    input[type='checkbox']:checked + .ss-available {
+        background: rgba(30, 144, 255, 0.25);
+        border-color: #1e90ff;
+        color: #1e90ff;
+        box-shadow: 0 0 12px rgba(30, 144, 255, 0.3);
+        transform: scale(1.05);
+    }
+
+    .ss-no-seats {
+        width: 100%;
+        text-align: center;
+        padding: 40px;
+        color: rgba(255,255,255,0.4);
+    }
+
+    .ss-no-seats i {
+        font-size: 36px;
+        margin-bottom: 12px;
+        display: block;
+    }
+
+    /* Legend */
+    .ss-legend {
+        display: flex;
+        justify-content: center;
+        gap: 30px;
+        margin: 36px 0 20px;
+    }
+
+    .ss-legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        color: rgba(255,255,255,0.5);
+    }
+
+    .ss-legend-box {
+        width: 16px;
+        height: 16px;
+        border-radius: 4px;
+    }
+
+    .ss-legend-available {
+        background: rgba(74, 189, 93, 0.3);
+        border: 1px solid rgba(74, 189, 93, 0.5);
+    }
+
+    .ss-legend-selected {
+        background: rgba(30, 144, 255, 0.3);
+        border: 1px solid rgba(30, 144, 255, 0.5);
+    }
+
+    .ss-legend-booked {
+        background: rgba(220, 53, 69, 0.2);
+        border: 1px solid rgba(220, 53, 69, 0.3);
+    }
+
+    /* Summary Bar */
+    .ss-summary-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(to top, #1a1a2e, rgba(26,26,46,0.95));
+        backdrop-filter: blur(12px);
+        border-top: 1px solid rgba(255,255,255,0.06);
+        padding: 16px 0;
+        z-index: 100;
+    }
+
+    .ss-summary-inner {
+        max-width: 860px;
+        margin: 0 auto;
+        padding: 0 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .ss-summary-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .ss-summary-label {
+        color: rgba(255,255,255,0.5);
+        font-size: 14px;
+    }
+
+    .ss-seat-count {
+        color: #fff;
+        font-size: 22px;
+        font-weight: 700;
+    }
+
+    .ss-pay-btn {
+        background: linear-gradient(135deg, #F84464, #ff6b81);
+        color: #fff;
+        border: none;
+        padding: 14px 32px;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 6px 20px rgba(248, 68, 100, 0.35);
+        transition: all 0.25s;
+    }
+
+    .ss-pay-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 28px rgba(248, 68, 100, 0.45);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .ss-info-inner {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .ss-screen {
+            width: 85%;
+        }
+
+        .ss-seat {
+            width: 44px;
+            height: 44px;
+            font-size: 9px;
+        }
+
+        .ss-seat i {
+            font-size: 14px;
+        }
+
+        .ss-seat-grid {
+            gap: 6px;
+        }
+
+        .ss-summary-inner {
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .ss-pay-btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
 </style>
+
+<script>
+    // Live seat count
+    const checkboxes = document.querySelectorAll('input[name="seats"]');
+    const countDisplay = document.getElementById('seatCount');
+
+    function updateCount() {
+        const checked = document.querySelectorAll('input[name="seats"]:checked').length;
+        countDisplay.textContent = checked;
+    }
+
+    checkboxes.forEach(cb => cb.addEventListener('change', updateCount));
+    updateCount();
+</script>
 {% endblock %}

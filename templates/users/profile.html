@@ -1,298 +1,396 @@
 {% extends 'users/basic.html' %}
 
-{% block title %}My Profile - BookMyTicket{% endblock %}
+{% block title %}My Profile — BookMyTicket{% endblock %}
 
 {% block content %}
-<div class="profile-container">
-    
-    <!-- Left Column: Profile Settings Form -->
-    <div class="profile-section card-box">
-        <h2 class="section-title"><i class="fas fa-user-cog"></i> Profile Settings</h2>
-        
-        <form method="POST" class="profile-form">
-            {% csrf_token %}
-            
-            <!-- Render User Model Fields (Username, Email) -->
-            <h3>Account Info</h3>
-            {% for field in uform %}
-                <div class="form-group-item">
-                    <label for="{{ field.id_for_label }}" class="custom-label">{{ field.label }}</label>
-                    <div class="input-control-wrapper">
-                        {{ field }}
-                    </div>
+<div class="pf-wrapper">
+    <div class="pf-container">
+
+        <!-- Left: Profile Settings -->
+        <div class="pf-settings pf-card">
+            <div class="pf-avatar-section">
+                <div class="pf-avatar">
+                    <span>{{ user.username|first|upper }}</span>
+                </div>
+                <div class="pf-user-info">
+                    <h2>{{ user.username }}</h2>
+                    <p>{{ user.email }}</p>
+                </div>
+            </div>
+
+            <form method="POST" class="pf-form">
+                {% csrf_token %}
+
+                <h3 class="pf-section-label"><i class="fas fa-user-cog"></i> Account Info</h3>
+                {% for field in uform %}
+                <div class="pf-field">
+                    <label for="{{ field.id_for_label }}" class="pf-label">{{ field.label }}</label>
+                    <div class="pf-input-wrap">{{ field }}</div>
                     {% if field.help_text %}
-                        <small class="field-helper-text">{{ field.help_text }}</small>
+                        <small class="pf-help">{{ field.help_text }}</small>
                     {% endif %}
                 </div>
-            {% endfor %}
+                {% endfor %}
 
-            <!-- Render Profile Model Fields (Bio, Avatar picture) -->
-            <h3>Personal Bio</h3>
-            {% for field in pform %}
-                <div class="form-group-item">
-                    <label for="{{ field.id_for_label }}" class="custom-label">{{ field.label }}</label>
-                    <div class="input-control-wrapper">
-                        {{ field }}
-                    </div>
+                <h3 class="pf-section-label"><i class="fas fa-pen"></i> Personal Bio</h3>
+                {% for field in pform %}
+                <div class="pf-field">
+                    <label for="{{ field.id_for_label }}" class="pf-label">{{ field.label }}</label>
+                    <div class="pf-input-wrap">{{ field }}</div>
                     {% if field.help_text %}
-                        <small class="field-helper-text">{{ field.help_text }}</small>
+                        <small class="pf-help">{{ field.help_text }}</small>
                     {% endif %}
                 </div>
-            {% endfor %}
-            
-            <button type="submit" class="save-profile-btn">Update Profile</button>
-        </form>
-    </div>
+                {% endfor %}
 
-    <!-- Right Column: Bookings History & Actions -->
-    <div class="bookings-section">
-        <div class="action-header card-box">
-            <!-- Changed pattern from 'password_change' to your verified 'password_reset' route -->
-            <a href="{% url 'password_reset' %}" class="change-pw-link">
-                <i class="fas fa-key"></i> Change Password
-            </a>
+                <button type="submit" class="pf-save-btn"><i class="fas fa-check"></i> Update Profile</button>
+            </form>
         </div>
 
-        <div class="bookings-list-wrapper card-box">
-            <h2 class="section-title"><i class="fas fa-ticket-alt"></i> Your Bookings</h2>
-            <div class="tickets-grid">
-                {% if bookings %}
+        <!-- Right: Bookings & Actions -->
+        <div class="pf-right">
+            <!-- Quick Actions -->
+            <div class="pf-card pf-actions">
+                <a href="{% url 'change_password' %}" class="pf-action-link">
+                    <i class="fas fa-key"></i> Change Password
+                </a>
+                <a href="{% url 'movie_list' %}" class="pf-action-link">
+                    <i class="fas fa-film"></i> Browse Movies
+                </a>
+            </div>
+
+            <!-- Bookings -->
+            <div class="pf-card pf-bookings">
+                <h2 class="pf-bookings-title"><i class="fas fa-ticket-alt"></i> Your Bookings</h2>
+                <div class="pf-tickets">
+                    {% if bookings %}
                     {% for booking in bookings %}
-                        <div class="ticket-card-node">
-                            <div class="ticket-icon">
-                                <i class="fas fa-film"></i>
-                            </div>
-                            <div class="ticket-details">
-                                <span class="movie-name-tag">{{ booking.seat.theater.movie.name|default:"AVATAR" }}</span>
-                                <span class="theater-name-tag">at {{ booking.seat.theater.name|default:"PVR" }}</span>
-                                <div class="seat-badge">Seat {{ booking.seat.seat_number }}</div>
-                            </div>
+                    <div class="pf-ticket">
+                        <div class="pf-ticket-left">
+                            <div class="pf-ticket-icon"><i class="fas fa-film"></i></div>
                         </div>
+                        <div class="pf-ticket-mid">
+                            <span class="pf-ticket-movie">{{ booking.seat.theater.movie.name|default:"Movie" }}</span>
+                            <span class="pf-ticket-theater">{{ booking.seat.theater.name|default:"Theater" }}</span>
+                            <span class="pf-ticket-time">{{ booking.booking_time|date:"d M Y, g:i A" }}</span>
+                        </div>
+                        <div class="pf-ticket-right">
+                            <span class="pf-seat-badge">{{ booking.seat.seat_number }}</span>
+                        </div>
+                        <div class="pf-ticket-perforated"></div>
+                    </div>
                     {% endfor %}
-                {% else %}
-                    <p class="no-bookings">You haven't booked any tickets yet.</p>
-                {% endif %}
+                    {% else %}
+                    <div class="pf-no-bookings">
+                        <i class="fas fa-ticket-alt"></i>
+                        <p>No bookings yet. <a href="{% url 'movie_list' %}">Book your first ticket!</a></p>
+                    </div>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>
-
 </div>
 
 <style>
-    .profile-container { max-width: 1100px; margin: 40px auto; padding: 0 20px; display: flex; gap: 30px; font-family: 'Segoe UI', sans-serif; background-color: #fdfdfd; }
-    .card-box { background: #ffffff; border-radius: 10px; padding: 30px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05); border: 1px solid #eaeaea; }
-    .profile-section { flex: 1.2; }
-    .profile-section h3 { font-size: 16px; margin: 20px 0 10px; color: #495057; border-left: 3px solid #df3848; padding-left: 8px; }
-    .bookings-section { flex: 1; display: flex; flex-direction: column; gap: 20px; }
-    .section-title { font-size: 20px; color: #212529; margin: 0 0 25px 0; border-bottom: 2px solid #eaeaea; padding-bottom: 10px; display: flex; align-items: center; gap: 10px; }
-    .form-group-item { margin-bottom: 20px; display: flex; flex-direction: column; }
-    .custom-label { font-size: 14px; font-weight: 600; color: #495057; margin-bottom: 6px; }
-    .styled-profile-field { width: 100%; padding: 10px 14px; border: 1px solid #ced4da; border-radius: 6px; font-size: 15px; outline: none; box-sizing: border-box; }
-    .styled-profile-field:focus { border-color: #df3848; }
-    textarea.styled-profile-field { min-height: 100px; resize: vertical; }
-    .field-helper-text { display: block; font-size: 12px; color: #868e96; margin-top: 5px; line-height: 1.4; }
-    .save-profile-btn { background-color: #df3848; color: #ffffff; border: none; padding: 12px 24px; font-size: 15px; font-weight: 600; border-radius: 6px; cursor: pointer; margin-top: 15px; }
-    .change-pw-link { display: inline-flex; align-items: center; gap: 8px; color: #6c757d; text-decoration: none; font-weight: 500; font-size: 14px; }
-    .change-pw-link:hover { color: #df3848; }
-    .tickets-grid { display: flex; flex-direction: column; gap: 15px; }
-    .ticket-card-node { display: flex; align-items: center; gap: 15px; background: #f8f9fa; padding: 15px 20px; border-radius: 8px; border-left: 4px solid #df3848; }
-    .ticket-icon { font-size: 20px; color: #df3848; }
-    .ticket-details { display: flex; flex-direction: column; gap: 4px; text-align: left; }
-    .movie-name-tag { font-weight: 700; color: #212529; font-size: 16px; }
-    .theater-name-tag { font-size: 13px; color: #6c757d; }
-    .seat-badge { display: inline-block; background: #df3848; color: #ffffff; font-size: 11px; font-weight: bold; padding: 2px 8px; border-radius: 20px; margin-top: 4px; width: max-content; }
-    .no-bookings { color: #6c757d; font-size: 14px; text-align: center; padding: 20px 0; }
-    @media (max-width: 768px) { .profile-container { flex-direction: column; } }
+    .pf-wrapper {
+        background: #f5f5f5;
+        min-height: calc(100vh - 200px);
+        padding: 30px 0 60px;
+    }
+
+    .pf-container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 20px;
+        display: flex;
+        gap: 24px;
+    }
+
+    .pf-card {
+        background: #fff;
+        border-radius: 12px;
+        padding: 28px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+        border: 1px solid #eee;
+    }
+
+    .pf-settings {
+        flex: 1.2;
+    }
+
+    .pf-right {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    /* Avatar */
+    .pf-avatar-section {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        margin-bottom: 28px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .pf-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #F84464, #ff6b81);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 24px;
+        font-weight: 700;
+        box-shadow: 0 4px 14px rgba(248,68,100,0.3);
+        flex-shrink: 0;
+    }
+
+    .pf-user-info h2 {
+        margin: 0 0 4px;
+        font-size: 18px;
+        font-weight: 700;
+        color: #222;
+    }
+
+    .pf-user-info p {
+        margin: 0;
+        font-size: 13px;
+        color: #888;
+    }
+
+    /* Form */
+    .pf-section-label {
+        font-size: 14px;
+        font-weight: 700;
+        color: #333;
+        margin: 20px 0 12px;
+        padding-left: 10px;
+        border-left: 3px solid #F84464;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .pf-field {
+        margin-bottom: 16px;
+    }
+
+    .pf-label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: #555;
+        margin-bottom: 6px;
+    }
+
+    .pf-input-wrap input,
+    .pf-input-wrap textarea,
+    .styled-profile-field {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 14px;
+        color: #222;
+        outline: none;
+        font-family: inherit;
+        transition: border-color 0.2s;
+        box-sizing: border-box;
+    }
+
+    .pf-input-wrap input:focus,
+    .pf-input-wrap textarea:focus,
+    .styled-profile-field:focus {
+        border-color: #F84464;
+        box-shadow: 0 0 0 3px rgba(248,68,100,0.08);
+    }
+
+    .pf-input-wrap textarea,
+    textarea.styled-profile-field {
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    .pf-help {
+        font-size: 11px;
+        color: #999;
+        margin-top: 4px;
+        display: block;
+        line-height: 1.4;
+    }
+
+    .pf-save-btn {
+        background: linear-gradient(135deg, #F84464, #ff6b81);
+        color: #fff;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 10px;
+        box-shadow: 0 4px 14px rgba(248,68,100,0.25);
+        transition: all 0.25s;
+    }
+
+    .pf-save-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 22px rgba(248,68,100,0.35);
+    }
+
+    /* Actions */
+    .pf-actions {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .pf-action-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #555;
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+        padding: 8px 16px;
+        border-radius: 8px;
+        background: #f5f5f5;
+        transition: all 0.2s;
+    }
+
+    .pf-action-link:hover {
+        color: #F84464;
+        background: rgba(248,68,100,0.06);
+    }
+
+    /* Bookings Title */
+    .pf-bookings-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #222;
+        margin: 0 0 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding-bottom: 14px;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .pf-bookings-title i {
+        color: #F84464;
+    }
+
+    /* Ticket Cards */
+    .pf-tickets {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .pf-ticket {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        background: #fafafa;
+        padding: 16px 18px;
+        border-radius: 10px;
+        border-left: 4px solid #F84464;
+        position: relative;
+        transition: box-shadow 0.2s;
+    }
+
+    .pf-ticket:hover {
+        box-shadow: 0 4px 14px rgba(0,0,0,0.04);
+    }
+
+    .pf-ticket-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: rgba(248,68,100,0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #F84464;
+        font-size: 16px;
+        flex-shrink: 0;
+    }
+
+    .pf-ticket-mid {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+    }
+
+    .pf-ticket-movie {
+        font-weight: 700;
+        color: #222;
+        font-size: 15px;
+    }
+
+    .pf-ticket-theater {
+        font-size: 12px;
+        color: #888;
+    }
+
+    .pf-ticket-time {
+        font-size: 11px;
+        color: #aaa;
+    }
+
+    .pf-seat-badge {
+        background: #F84464;
+        color: #fff;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 4px 12px;
+        border-radius: 20px;
+    }
+
+    .pf-no-bookings {
+        text-align: center;
+        padding: 30px;
+        color: #999;
+    }
+
+    .pf-no-bookings i {
+        font-size: 36px;
+        color: #ddd;
+        margin-bottom: 12px;
+        display: block;
+    }
+
+    .pf-no-bookings a {
+        color: #F84464;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .pf-container {
+            flex-direction: column;
+        }
+    }
 </style>
 
 <script>
     document.addEventListener('DOMContentLoaded', function(){
-        const inputs = document.querySelectorAll('.profile-form input, .profile-form textarea');
+        const inputs = document.querySelectorAll('.pf-form input, .pf-form textarea');
         inputs.forEach(input => {
             input.classList.add('styled-profile-field');
         });
     });
 </script>
 {% endblock %}
-
-<style>
-    /* Container framework layout split */
-.profile-container {
-    max-width: 1100px;
-    margin: 40px auto;
-    padding: 0 20px;
-    display: flex;
-    gap: 30px;
-    font-family: 'Segoe UI', sans-serif;
-    background-color: #fdfdfd;
-}
-
-/* Base utility cards */
-.card-box {
-    background: #ffffff;
-    border-radius: 10px;
-    padding: 30px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
-    border: 1px solid #eaeaea;
-}
-
-/* Individual side sizing splits */
-.profile-section {
-    flex: 1.2;
-}
-
-.bookings-section {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-.section-title {
-    font-size: 20px;
-    color: #212529;
-    margin-top: 0;
-    margin-bottom: 25px;
-    border-bottom: 2px solid #eaeaea;
-    padding-bottom: 10px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-/* Form structure cleans */
-.form-group-item {
-    margin-bottom: 20px;
-    display: flex;
-    flex-direction: column;
-}
-
-.custom-label {
-    font-size: 14px;
-    font-weight: 600;
-    color: #495057;
-    margin-bottom: 6px;
-}
-
-/* Clean input layout wrappers */
-.styled-profile-field {
-    width: 100%;
-    padding: 10px 14px;
-    border: 1px solid #ced4da;
-    border-radius: 6px;
-    font-size: 15px;
-    outline: none;
-    box-sizing: border-box;
-    transition: border-color 0.2s;
-}
-
-.styled-profile-field:focus {
-    border-color: #df3848;
-}
-
-textarea.styled-profile-field {
-    min-height: 120px;
-    resize: vertical;
-}
-
-/* Clean helper text spacing below form boxes */
-.field-helper-text {
-    display: block;
-    font-size: 12px;
-    color: #868e96;
-    margin-top: 5px;
-    line-height: 1.4;
-}
-
-/* Main action button styling */
-.save-profile-btn {
-    background-color: #007bff;
-    color: #ffffff;
-    border: none;
-    padding: 12px 24px;
-    font-size: 15px;
-    font-weight: 600;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.save-profile-btn:hover {
-    background-color: #0056b3;
-}
-
-/* Right column items */
-.change-pw-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    color: #6c757d;
-    text-decoration: none;
-    font-weight: 500;
-    font-size: 14px;
-}
-
-.change-pw-link:hover {
-    color: #df3848;
-}
-
-/* Ticket list component display structures */
-.tickets-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.ticket-card-node {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    background: #f8f9fa;
-    padding: 15px 20px;
-    border-radius: 8px;
-    border-left: 4px solid #df3848;
-}
-
-.ticket-icon {
-    font-size: 20px;
-    color: #df3848;
-}
-
-.ticket-details {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    text-align: left;
-}
-
-.movie-name-tag {
-    font-weight: 700;
-    color: #212529;
-    font-size: 16px;
-}
-
-.theater-name-tag {
-    font-size: 13px;
-    color: #6c757d;
-}
-
-.seat-badge {
-    display: inline-block;
-    background: #df3848;
-    color: #ffffff;
-    font-size: 11px;
-    font-weight: bold;
-    padding: 2px 8px;
-    border-radius: 20px;
-    margin-top: 4px;
-    width: max-content;
-}
-
-/* Responsive collapse for small browser viewports */
-@media (max-width: 768px) {
-    .profile-container {
-        flex-direction: column;
-    }
-}
-
-</style>

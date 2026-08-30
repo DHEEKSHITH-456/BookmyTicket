@@ -1,258 +1,281 @@
 {% extends 'users/basic.html' %}
 
-{% block title %}Login - BookMyTicket{% endblock %}
+{% block title %}Sign In — BookMyTicket{% endblock %}
 
 {% block content %}
 <div class="login-wrapper">
     <div class="login-card">
         <div class="login-header">
+            <div class="login-icon-circle">
+                <i class="fas fa-ticket-alt"></i>
+            </div>
             <h2>Welcome Back</h2>
-            <p>Sign in to your account to book your tickets</p>
+            <p>Sign in to your BookMyTicket account</p>
         </div>
-        
-        <!-- Notice we changed form.username to forms.username to match your views.py dictionary key -->
-        <form method="POST" action="{% url 'login' %}" class="login-form">
+
+        <form method="POST" action="{% url 'login' %}{% if request.GET.next %}?next={{ request.GET.next }}{% endif %}" class="login-form">
             {% csrf_token %}
-            
-            <!-- Username Field -->
-            <div class="input-group-container">
-                <label for="{{ forms.username.id_for_label }}" class="field-label">Username</label>
-                <div class="input-field-wrapper">
-                    <span class="field-icon">
-                        <i class="fas fa-user"></i>
-                    </span>
+            {% if request.GET.next %}
+                <input type="hidden" name="next" value="{{ request.GET.next }}">
+            {% endif %}
+
+            {% if forms.non_field_errors %}
+                <div class="lg-alert">
+                    {{ forms.non_field_errors }}
+                </div>
+            {% elif forms.errors %}
+                <div class="lg-alert">
+                    Please enter a correct username and password. Note that both fields may be case-sensitive.
+                </div>
+            {% endif %}
+
+            <!-- Username -->
+            <div class="lg-field-group">
+                <label for="{{ forms.username.id_for_label }}" class="lg-label">Username</label>
+                <div class="lg-input-wrap">
+                    <span class="lg-icon"><i class="fas fa-user"></i></span>
                     {{ forms.username }}
                 </div>
+                {% for error in forms.username.errors %}
+                    <div class="lg-error">{{ error }}</div>
+                {% endfor %}
             </div>
-            
-            <!-- Password Field -->
-            <div class="input-group-container">
-                <label for="{{ forms.password.id_for_label }}" class="field-label">Password</label>
-                <div class="input-field-wrapper">
-                    <span class="field-icon">
-                        <i class="fas fa-lock"></i>
-                    </span>
+
+            <!-- Password -->
+            <div class="lg-field-group">
+                <label for="{{ forms.password.id_for_label }}" class="lg-label">Password</label>
+                <div class="lg-input-wrap">
+                    <span class="lg-icon"><i class="fas fa-lock"></i></span>
                     {{ forms.password }}
-                    <button type="button" id="togglePassword" class="password-toggle-btn">
+                    <button type="button" id="togglePassword" class="lg-toggle-pw">
                         <i class="fas fa-eye" id="toggleIcon"></i>
                     </button>
                 </div>
+                {% for error in forms.password.errors %}
+                    <div class="lg-error">{{ error }}</div>
+                {% endfor %}
             </div>
-            
-            <!-- Actions & Links -->
-            <div class="form-options">
-                <a href="{% url 'password_reset' %}" class="forgot-link">Forgot password?</a>
+
+            <!-- Actions -->
+            <div class="lg-options">
+                <a href="{% url 'password_reset' %}" class="lg-forgot">Forgot password?</a>
             </div>
-            
-            <button type="submit" class="submit-btn">
-                <i class="fas fa-sign-in-alt me-2"></i> Login
+
+            <button type="submit" class="lg-submit-btn">
+                <i class="fas fa-sign-in-alt"></i> Sign In
             </button>
         </form>
-        
-        <div class="login-footer-links">
-            <p>Don't have an account? <a href="{% url 'register' %}" class="register-link">Register here</a></p>
+
+        <div class="lg-footer">
+            <p>New to BookMyTicket? <a href="{% url 'register' %}">Create an account</a></p>
         </div>
     </div>
 </div>
 
-<!-- Embedded styling sheet layout rules -->
 <style>
-    .login-wrapper { min-height: calc(100vh - 160px); display: flex; justify-content: center; align-items: center; background-color: #f8f9fa; padding: 40px 20px; font-family: 'Segoe UI', sans-serif; }
-    .login-card { background: #ffffff; max-width: 420px; width: 100%; padding: 40px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08); }
-    .login-header h2 { margin: 0 0 8px 0; color: #212529; font-size: 28px; font-weight: 700; text-align: center; }
-    .login-header p { margin: 0 0 30px 0; color: #6c757d; font-size: 14px; text-align: center; }
-    .input-group-container { margin-bottom: 20px; text-align: left; }
-    .field-label { display: block; font-size: 14px; font-weight: 600; color: #495057; margin-bottom: 8px; }
-    .input-field-wrapper { display: flex; align-items: center; position: relative; border: 1px solid #ced4da; border-radius: 8px; background: #ffffff; transition: border-color 0.2s, box-shadow 0.2s; }
-    .input-field-wrapper:focus-within { border-color: #df3848; box-shadow: 0 0 0 3px rgba(223, 56, 72, 0.15); }
-    .field-icon { padding: 12px 14px; color: #a8aeb4; display: flex; align-items: center; justify-content: center; min-width: 45px; }
-    .form-input-element { width: 100%; border: none !important; outline: none !important; padding: 12px 40px 12px 0; font-size: 15px; color: #212529; background: transparent; }
-    .password-toggle-btn { position: absolute; right: 12px; background: none; border: none; color: #6c757d; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; }
-    .password-toggle-btn:hover { color: #212529; }
-    .form-options { display: flex; justify-content: flex-end; margin-bottom: 25px; }
-    .forgot-link, .register-link { color: #df3848; font-size: 14px; text-decoration: none; font-weight: 500; }
-    .forgot-link:hover, .register-link:hover { text-decoration: underline; }
-    .submit-btn { width: 100%; padding: 14px; background-color: #df3848; color: #ffffff; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background-color 0.2s; }
-    .submit-btn:hover { background-color: #c42e3c; }
-    .login-footer-links { margin-top: 25px; text-align: center; font-size: 14px; color: #6c757d; }
+    .login-wrapper {
+        min-height: calc(100vh - 200px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: linear-gradient(135deg, #f5f5f5 0%, #eee 100%);
+        padding: 40px 20px;
+    }
+
+    .login-card {
+        background: #fff;
+        max-width: 420px;
+        width: 100%;
+        padding: 40px;
+        border-radius: 16px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+    }
+
+    .login-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .login-icon-circle {
+        width: 56px;
+        height: 56px;
+        border-radius: 16px;
+        background: linear-gradient(135deg, #F84464, #ff6b81);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px;
+        color: #fff;
+        font-size: 22px;
+        box-shadow: 0 6px 20px rgba(248,68,100,0.3);
+    }
+
+    .login-header h2 {
+        margin: 0 0 6px;
+        color: #222;
+        font-size: 24px;
+        font-weight: 700;
+    }
+
+    .login-header p {
+        color: #888;
+        font-size: 14px;
+        margin: 0;
+    }
+
+    .lg-field-group {
+        margin-bottom: 20px;
+    }
+
+    .lg-alert {
+        border-radius: 10px;
+        padding: 12px 14px;
+        font-size: 13px;
+        background: rgba(220, 53, 69, 0.08);
+        color: #b91c1c;
+        border: 1px solid rgba(220, 53, 69, 0.15);
+        margin-bottom: 20px;
+    }
+
+    .lg-error {
+        color: #dc3545;
+        font-size: 12px;
+        margin-top: 4px;
+    }
+
+    .lg-label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: #555;
+        margin-bottom: 8px;
+    }
+
+    .lg-input-wrap {
+        display: flex;
+        align-items: center;
+        border: 1px solid #e0e0e0;
+        border-radius: 10px;
+        background: #fafafa;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        position: relative;
+    }
+
+    .lg-input-wrap:focus-within {
+        border-color: #F84464;
+        box-shadow: 0 0 0 3px rgba(248,68,100,0.1);
+        background: #fff;
+    }
+
+    .lg-icon {
+        padding: 12px 14px;
+        color: #bbb;
+        font-size: 14px;
+    }
+
+    .lg-input-wrap input,
+    .lg-input-wrap .form-input-element {
+        width: 100%;
+        border: none !important;
+        outline: none !important;
+        padding: 12px 40px 12px 0;
+        font-size: 14px;
+        color: #222;
+        background: transparent !important;
+        font-family: inherit;
+    }
+
+    .lg-toggle-pw {
+        position: absolute;
+        right: 12px;
+        background: none;
+        border: none;
+        color: #999;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .lg-toggle-pw:hover {
+        color: #555;
+    }
+
+    .lg-options {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 24px;
+    }
+
+    .lg-forgot {
+        color: #F84464;
+        font-size: 13px;
+        font-weight: 500;
+        text-decoration: none;
+    }
+
+    .lg-forgot:hover {
+        text-decoration: underline;
+    }
+
+    .lg-submit-btn {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, #F84464, #ff6b81);
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        box-shadow: 0 6px 20px rgba(248,68,100,0.25);
+        transition: all 0.25s;
+    }
+
+    .lg-submit-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 28px rgba(248,68,100,0.35);
+    }
+
+    .lg-footer {
+        margin-top: 24px;
+        text-align: center;
+        font-size: 14px;
+        color: #888;
+    }
+
+    .lg-footer a {
+        color: #F84464;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .lg-footer a:hover {
+        text-decoration: underline;
+    }
 </style>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function(){ 
+    document.addEventListener('DOMContentLoaded', function(){
         const togglePassword = document.getElementById('togglePassword');
         const passwordField = document.getElementById('{{ forms.password.id_for_label }}');
         const toggleIcon = document.getElementById('toggleIcon');
 
-        // Dynamically applies clean CSS classes to raw fields 
+        // Apply clean input styling to Django-rendered fields
         const usernameInput = document.getElementById('{{ forms.username.id_for_label }}');
         if (usernameInput) usernameInput.classList.add('form-input-element');
         if (passwordField) passwordField.classList.add('form-input-element');
 
-        togglePassword.addEventListener('click', function() {
-            const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
-            passwordField.setAttribute('type', type);
-            toggleIcon.classList.toggle('fa-eye');
-            toggleIcon.classList.toggle('fa-eye-slash');
-        });
+        if (togglePassword && passwordField) {
+            togglePassword.addEventListener('click', function() {
+                const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordField.setAttribute('type', type);
+                toggleIcon.classList.toggle('fa-eye');
+                toggleIcon.classList.toggle('fa-eye-slash');
+            });
+        }
     });
 </script>
 {% endblock %}
-
-<style>
-    /* Container to center the entire card on the page */
-    .login-wrapper {
-        min-height: calc(100vh - 160px); /* Adjusts based on your header/footer sizes */
-        display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: #f8f9fa;
-    padding: 40px 20px;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-/* Card layout wrapper */
-.login-card {
-    background: #ffffff;
-    max-width: 420px;
-    width: 100%;
-    padding: 40px;
-    border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-}
-
-/* Header inside card */
-.login-header h2 {
-    margin: 0 0 8px 0;
-    color: #212529;
-    font-size: 28px;
-    font-weight: 700;
-    text-align: center;
-}
-
-.login-header p {
-    margin: 0 0 30px 0;
-    color: #6c757d;
-    font-size: 14px;
-    text-align: center;
-}
-
-/* Input layout grouping */
-.input-group-container {
-    margin-bottom: 20px;
-    text-align: left;
-}
-
-.field-label {
-    display: block;
-    font-size: 14px;
-    font-weight: 600;
-    color: #495057;
-    margin-bottom: 8px;
-}
-
-/* Wrapper to hold icon and raw input box horizontally */
-.input-field-wrapper {
-    display: flex;
-    align-items: center;
-    position: relative;
-    border: 1px solid #ced4da;
-    border-radius: 8px;
-    background: #ffffff;
-    transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.input-field-wrapper:focus-within {
-    border-color: #df3848; /* Matches your red BookMyTicket logo brand color */
-    box-shadow: 0 0 0 3px rgba(223, 56, 72, 0.15);
-}
-
-/* Icon positioning */
-.field-icon {
-    padding: 12px 14px;
-    color: #a8aeb4;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 45px;
-}
-
-/* Injected class style targeting Django raw native input fields */
-.form-input-element {
-    width: 100%;
-    border: none !important;
-    outline: none !important;
-    padding: 12px 40px 12px 0; /* Right padding leaves space for password view button */
-    font-size: 15px;
-    color: #212529;
-    background: transparent;
-}
-
-/* Password visibility button overlay */
-.password-toggle-btn {
-    position: absolute;
-    right: 12px;
-    background: none;
-    border: none;
-    color: #6c757d;
-    cursor: pointer;
-    padding: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.password-toggle-btn:hover {
-    color: #212529;
-}
-
-/* Form actions */
-.form-options {
-    display: flex;
-    justify-content: flex-end;
-    margin-bottom: 25px;
-}
-
-.forgot-link, .register-link {
-    color: #df3848;
-    font-size: 14px;
-    text-decoration: none;
-    font-weight: 500;
-}
-
-.forgot-link:hover, .register-link:hover {
-    text-decoration: underline;
-}
-
-/* Premium submit action button */
-.submit-btn {
-    width: 100%;
-    padding: 14px;
-    background-color: #df3848;
-    color: #ffffff;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: background-color 0.2s;
-}
-
-.submit-btn:hover {
-    background-color: #c42e3c;
-}
-
-/* Bottom spacing segment */
-.login-footer-links {
-    margin-top: 25px;
-    text-align: center;
-    font-size: 14px;
-    color: #6c757d;
-}
-
-.login-footer-links p {
-    margin: 0;
-}

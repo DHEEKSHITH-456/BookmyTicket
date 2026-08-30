@@ -1,136 +1,448 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% block title %}BookMyTicket{% endblock %}</title>
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
-    />
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
     <style>
-      body {
-        font-family: Arial, sans-serif;
-      }
-      .navbar {
-        background-color: #343a40;
-        padding: 10px 20px;
-      }
-      .navbar-brand img {
-        height: 40px;
-      }
-      .navbar-nav .nav-link {
-        color: #f8f9fa;
-      }
-      .banner {
-        background-color: #f8f9fa;
-        padding: 20px;
-        text-align: center;
-      }
-      .banner img {
-        max-width: 100%;
-        height: auto;
-      }
-      .section-title {
-        font-size: 24px;
-        font-weight: bold;
-        margin: 20px 0;
-      }
-      .card img {
-        height: 200px;
-        object-fit: cover;
-      }
-      .footer {
-        background-color: #343a40;
-        color: #f8f9fa;
-        padding: 20px 0;
-      }
-      .footer a {
-        color: #f8f9fa;
-        text-decoration: none;
-      }
-      .footer a:hover {
-        text-decoration: underline;
-      }
-      .footer .social-icons i {
-        font-size: 24px;
-        margin: 0 10px;
-        transition: color 0.3s;
-      }
-      .footer .social-icons i:hover {
-        color: #28a745;
-      }
-    </style>
-    </head>
-    <body>
-        <nav class = "navbar navbar-expand-lg navbar-dark bg-dark">
-            <div class = "navbar"></div>
-            <a class="navbar-brand" href="/"
-          ><img
-            src="data:image/jpeg;base64,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Nt7fObnmCt+8njhQnatL3kXivHDQYUb0koCAN28HBHAjkjHku7TtW6vslFVP9OWFrnd+N6uVnmsOE1mLutRekdIlg6w08dQUkMcc4hmhcXMc4ZaQRgg/JYvTtp9u13+JeZmOYlztu6ONmUOuVftsByY4G7OfZk/ooow+r082/wDMcYqfV3NFRU9FTMp6SMRRMGGtarHER0c/ky3y27d55l7jdu5I0U/riu8u1PVFrssgxA3/AI8fmSquWebO02nD3ekrz58y0KjeiICAgICAsSCyCAgICAgICAgICAgILV0XeLYLJQ0IrohURxBro3nZOfZnj4K1S1eOHH7lps86i+SaTxMupznmpHkykBBKMsO6VTaKgqap53RRl3jjcsW8I5SYcc5MlaR5yo2R7pHvkecue4ucfaTkqk+gRWKxFY8nyjIgICAgIIWJErIICAgICAgICAgICAgggHiAe9GeZZ9uvFztuPIa2eNo4R7W03/xOR8FtF7R0Vs2k0+b8SkT+7qLd0iVcYDa+ljmHN8Xmn4cFJXNPnDys2xY5/Dtx8XS2/Wtmrdzqh1O/smbgfHgpYy1l5WbaNVj6RzH5MHpEucbbE2GCVj/ACmQAljgRsjeeC0y28PBPs+mt/kTa0ccR+qslXdWICAgICAgICAgICAgICAgICAgICAgICyc8CwHZ7EY4EZEBAQEBAQEBAQEBAQEBAQEEIJQEBAQEBAQEBAQEBAQEBAQEBAQEEBAQSgICAgICAghBKAgICAgICAgICAgICAgICAgICAgICAghBKAgICAgICAgICAgICAg//Z"
-            alt="logo"
-            height="40"
-            width="45"
-          />
-        BookMyTicket</a>
-        <button
-          class="navbar-toggler"
-          type="button"
-          data-toggle="collapse"
-          data-target="#navbarNav"
-          aria-controls="navbarNav"
-          aria-expanded="false"
-          aria-label="Toggle navigation"
-        >
-        <span class="navbar-toggler-icon"></span>
-        
-        </button>
-            <div class = "collapse navbar-collapse" id = "navbarNav">    
-                <ul class = "navbar-nav ml-auto">
-                    {% if user.is_authenticated %}
-                        <li class = "nav-item"><a class = "nav-link" href = "{% url 'home' %}">Home</a></li>
-                        <li class = "nav-item"><a class = "nav-link" href = "{% url 'movie_list' %}">Movies</a></li>
-                        <li class = "nav-item"><a class = "nav-link" href = "{% url 'profile' %}">Profile</a></li>
-                        <li class = "nav-item"><a class = "nav-link" href = "{% url 'logout' %}">Logout</a></li>
+        /* ========== BMS-INSPIRED HEADER ========== */
+        .bms-header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+        }
 
-                    {% else %}
-                        <li class = "nav-item"><a class = "nav-link" href = "{% url 'login' %}">Login</a></li>
-                        <li class = "nav-item"><a class = "nav-link" href = "{% url 'register' %}">Register</a></li>
-                    {% endif %}
+        .bms-header-top {
+            max-width: 1240px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            height: 64px;
+            gap: 24px;
+        }
+
+        /* Logo */
+        .bms-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            flex-shrink: 0;
+        }
+
+        .bms-logo-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #F84464 0%, #ff6b81 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 16px;
+            box-shadow: 0 4px 15px rgba(248, 68, 100, 0.4);
+        }
+
+        .bms-logo-text {
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 18px;
+            letter-spacing: -0.5px;
+        }
+
+        /* Search Bar */
+        .bms-search {
+            flex: 1;
+            max-width: 520px;
+            position: relative;
+        }
+
+        .bms-search input {
+            width: 100%;
+            padding: 10px 16px 10px 42px;
+            border-radius: 6px;
+            border: none;
+            background: rgba(255,255,255,0.08);
+            color: #e0e0e0;
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            transition: background 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .bms-search input::placeholder {
+            color: rgba(255,255,255,0.4);
+        }
+
+        .bms-search input:focus {
+            background: rgba(255,255,255,0.14);
+            box-shadow: 0 0 0 2px rgba(248, 68, 100, 0.3);
+        }
+
+        .bms-search .search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255,255,255,0.4);
+            font-size: 14px;
+            pointer-events: none;
+        }
+
+        /* Location Selector */
+        .bms-location {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: rgba(255,255,255,0.7);
+            font-size: 13px;
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 6px;
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+
+        .bms-location:hover {
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+        }
+
+        .bms-location i:first-child {
+            color: #F84464;
+            font-size: 14px;
+        }
+
+        .bms-location .loc-name {
+            font-weight: 600;
+            color: #fff;
+        }
+
+        /* Right Nav Actions */
+        .bms-nav-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .bms-nav-link {
+            color: rgba(255,255,255,0.75);
+            font-size: 13px;
+            font-weight: 500;
+            padding: 8px 14px;
+            border-radius: 6px;
+            text-decoration: none;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .bms-nav-link:hover {
+            color: #fff;
+            background: rgba(255,255,255,0.08);
+        }
+
+        .bms-nav-link--cta {
+            background: #F84464;
+            color: #ffffff !important;
+            font-weight: 600;
+            padding: 8px 20px;
+            border-radius: 6px;
+            box-shadow: 0 4px 14px rgba(248, 68, 100, 0.35);
+        }
+
+        .bms-nav-link--cta:hover {
+            background: #e63956;
+            box-shadow: 0 6px 20px rgba(248, 68, 100, 0.45);
+        }
+
+
+        /* ========== MAIN CONTENT ========== */
+        .bms-main {
+            min-height: calc(100vh - 260px);
+        }
+
+        /* ========== PREMIUM FOOTER ========== */
+        .bms-footer {
+            background: #1a1a2e;
+            color: rgba(255,255,255,0.6);
+            padding: 50px 0 0;
+            margin-top: 60px;
+        }
+
+        .bms-footer-grid {
+            max-width: 1240px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 40px;
+        }
+
+        .footer-col h4 {
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 18px;
+        }
+
+        .footer-col ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .footer-col ul li {
+            margin-bottom: 10px;
+        }
+
+        .footer-col ul li a {
+            color: rgba(255,255,255,0.5);
+            font-size: 13px;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer-col ul li a:hover {
+            color: #F84464;
+        }
+
+        .footer-social {
+            display: flex;
+            gap: 12px;
+            margin-top: 6px;
+        }
+
+        .footer-social a {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255,255,255,0.6);
+            font-size: 14px;
+            transition: all 0.25s;
+        }
+
+        .footer-social a:hover {
+            background: #F84464;
+            color: #fff;
+            transform: translateY(-2px);
+        }
+
+        .bms-footer-bottom {
+            max-width: 1240px;
+            margin: 40px auto 0;
+            padding: 20px 20px;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .footer-copyright {
+            font-size: 12px;
+            color: rgba(255,255,255,0.35);
+        }
+
+        .footer-legal a {
+            font-size: 12px;
+            color: rgba(255,255,255,0.35);
+            text-decoration: none;
+            margin-left: 20px;
+        }
+
+        .footer-legal a:hover {
+            color: #F84464;
+        }
+
+        /* ========== MOBILE RESPONSIVE ========== */
+        .bms-mobile-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 22px;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .bms-header-top {
+                height: 56px;
+                gap: 12px;
+            }
+
+            .bms-search {
+                display: none;
+            }
+
+            .bms-location {
+                display: none;
+            }
+
+            .bms-mobile-toggle {
+                display: flex;
+            }
+
+            .bms-nav-right {
+                display: none;
+            }
+
+            .bms-nav-right.mobile-open {
+                display: flex;
+                flex-direction: column;
+                position: absolute;
+                top: 56px;
+                left: 0;
+                right: 0;
+                background: #1a1a2e;
+                padding: 16px 20px;
+                border-top: 1px solid rgba(255,255,255,0.06);
+                gap: 8px;
+                z-index: 999;
+            }
+
+            .bms-footer-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 30px;
+            }
+
+            .bms-footer-bottom {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .bms-footer-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <!-- ========== HEADER ========== -->
+    <header class="bms-header">
+        <div class="bms-header-top">
+            <a class="bms-logo" href="{% url 'home' %}">
+                <span class="bms-logo-icon"><i class="fa-solid fa-ticket"></i></span>
+                <span class="bms-logo-text">BookMyTicket</span>
+            </a>
+
+            <form class="bms-search" method="GET" action="{% url 'movie_list' %}">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" name="search" placeholder="Search for Movies, Events, Plays, Sports and Activities" value="{{ request.GET.search|default:'' }}" autocomplete="off">
+            </form>
+
+            <div class="bms-location">
+                <i class="fas fa-map-marker-alt"></i>
+                <span class="loc-name">Hyderabad</span>
+                <i class="fas fa-chevron-down" style="font-size:10px;"></i>
+            </div>
+
+            <button class="bms-mobile-toggle" id="mobileMenuBtn" aria-label="Toggle navigation">
+                <i class="fas fa-bars"></i>
+            </button>
+
+            <nav class="bms-nav-right" id="navRight">
+                {% if user.is_authenticated %}
+                    <a class="bms-nav-link" href="{% url 'home' %}"><i class="fas fa-home" style="margin-right:4px;"></i> Home</a>
+                    <a class="bms-nav-link" href="{% url 'movie_list' %}"><i class="fas fa-film" style="margin-right:4px;"></i> Movies</a>
+                    <a class="bms-nav-link" href="{% url 'profile' %}"><i class="fas fa-user" style="margin-right:4px;"></i> {{ user.username }}</a>
+                    <a class="bms-nav-link bms-nav-link--cta" href="{% url 'logout' %}">Sign Out</a>
+                {% else %}
+                    <a class="bms-nav-link" href="{% url 'home' %}">Home</a>
+                    <a class="bms-nav-link" href="{% url 'movie_list' %}">Movies</a>
+                    <a class="bms-nav-link" href="{% url 'login' %}">Sign In</a>
+                    <a class="bms-nav-link bms-nav-link--cta" href="{% url 'register' %}">Sign Up</a>
+                {% endif %}
+            </nav>
+        </div>
+    </header>
+
+    <!-- ========== MAIN CONTENT ========== -->
+    <main class="bms-main">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- ========== FOOTER ========== -->
+    <footer class="bms-footer">
+        <div class="bms-footer-grid">
+            <div class="footer-col">
+                <h4>BookMyTicket</h4>
+                <ul>
+                    <li><a href="#">About Us</a></li>
+                    <li><a href="#">Contact Us</a></li>
+                    <li><a href="#">Press</a></li>
+                    <li><a href="#">Careers</a></li>
                 </ul>
             </div>
-        </nav>
-        <div class = "container">
-            {% block content %}
-            {% endblock %}
-        </div>
-        <footer class = "footer mt-5">
-            <div class = "container text-center">
-                <p>&copy; 2026 BookMyTicket. All rights reserved.</p>
-                <div class = "footer-links">
-                    <a href="#">Privacy Policy</a> | <a href="#">Terms of Service</a> | <a href="#">Contact Us</a>
-                </div>
-                <p> We provide the best movie ticket booking experience.</p>
-                <p class="mt-3">Follow us on social media:</p>
-                <div class = "social-icons">
+            <div class="footer-col">
+                <h4>Help</h4>
+                <ul>
+                    <li><a href="#">Customer Care</a></li>
+                    <li><a href="#">FAQs</a></li>
+                    <li><a href="#">Terms & Conditions</a></li>
+                    <li><a href="#">Privacy Policy</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Exclusives</h4>
+                <ul>
+                    <li><a href="#">Gift Cards</a></li>
+                    <li><a href="#">Offers</a></li>
+                    <li><a href="#">Stream</a></li>
+                    <li><a href="#">Corporates</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Follow Us</h4>
+                <div class="footer-social">
                     <a href="#"><i class="fab fa-facebook-f"></i></a>
                     <a href="#"><i class="fab fa-twitter"></i></a>
                     <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-youtube"></i></a>
                     <a href="#"><i class="fab fa-linkedin-in"></i></a>
                 </div>
             </div>
-        </footer>
-        <script src = "https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-        <script src = "https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
-        <script src = "https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
-        
-    </body>
+        </div>
+
+        <div class="bms-footer-bottom">
+            <span class="footer-copyright">&copy; 2026 BookMyTicket. All rights reserved.</span>
+            <div class="footer-legal">
+                <a href="#">Terms</a>
+                <a href="#">Privacy</a>
+                <a href="#">Sitemap</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Mobile menu toggle
+        document.getElementById('mobileMenuBtn')?.addEventListener('click', function() {
+            document.getElementById('navRight')?.classList.toggle('mobile-open');
+        });
+    </script>
+    {% block extra_scripts %}{% endblock %}
+</body>
 </html>

@@ -6,25 +6,197 @@
     <title>{% block title %}BookMyTicket{% endblock %}</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     {% block extra_head %}{% endblock %}
+    <style>
+        :root {
+            --bg: #f4f7fb;
+            --surface: #ffffff;
+            --surface-2: #f8fafc;
+            --text: #111827;
+            --muted: #6b7280;
+            --line: rgba(15, 23, 42, 0.08);
+            --brand: #df3848;
+            --brand-strong: #bf2335;
+            --shadow: 0 14px 40px rgba(15, 23, 42, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            margin: 0;
+            min-height: 100%;
+            background: radial-gradient(circle at top left, #ffffff 0, #f4f7fb 44%, #eef2f7 100%);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+        }
+
+        a {
+            color: inherit;
+        }
+
+        .site-shell {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .site-header {
+            position: sticky;
+            top: 0;
+            z-index: 200;
+            backdrop-filter: blur(14px);
+            background: rgba(255, 255, 255, 0.84);
+            border-bottom: 1px solid var(--line);
+            box-shadow: 0 1px 0 rgba(15, 23, 42, 0.03);
+        }
+
+        .site-header__inner {
+            max-width: 1240px;
+            margin: 0 auto;
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+        }
+
+        .site-brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            font-size: 1.08rem;
+        }
+
+        .site-brand__mark {
+            width: 40px;
+            height: 40px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--brand), #ff7a59);
+            color: #fff;
+            display: grid;
+            place-items: center;
+            box-shadow: 0 10px 22px rgba(223, 56, 72, 0.24);
+        }
+
+        .site-brand__text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1;
+        }
+
+        .site-brand__text span:last-child {
+            font-size: 0.78rem;
+            color: var(--muted);
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        .site-nav {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .site-nav__link {
+            text-decoration: none;
+            color: var(--text);
+            font-weight: 600;
+            font-size: 0.95rem;
+            padding: 10px 14px;
+            border-radius: 999px;
+            transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+        }
+
+        .site-nav__link:hover {
+            background: rgba(223, 56, 72, 0.08);
+            color: var(--brand-strong);
+            transform: translateY(-1px);
+        }
+
+        .site-nav__link--primary {
+            background: var(--brand);
+            color: #fff;
+            box-shadow: 0 10px 22px rgba(223, 56, 72, 0.18);
+        }
+
+        .site-nav__link--primary:hover {
+            background: var(--brand-strong);
+            color: #fff;
+        }
+
+        .site-main {
+            flex: 1;
+        }
+
+        .site-footer {
+            border-top: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.72);
+            color: var(--muted);
+            padding: 20px 24px;
+            text-align: center;
+            font-size: 0.95rem;
+        }
+
+        @media (max-width: 768px) {
+            .site-header__inner {
+                padding: 14px 16px;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .site-nav {
+                width: 100%;
+            }
+
+            .site-nav__link {
+                padding: 9px 12px;
+            }
+        }
+    </style>
 </head>
 <body>
-    <header>
-        <nav>
-            <a href="{% url 'home' %}">Home</a>
-            {% if request.user.is_authenticated %}
-                <a href="{% url 'profile' %}">Profile</a>
-                <a href="{% url 'logout' %}">Logout</a>
-            {% else %}
-                <a href="{% url 'login' %}">Login</a>
-                <a href="{% url 'register' %}">Register</a>
-            {% endif %}
-        </nav>
-    </header>
+    <div class="site-shell">
+        <header class="site-header">
+            <div class="site-header__inner">
+                <a class="site-brand" href="{% url 'home' %}">
+                    <span class="site-brand__mark"><i class="fa-solid fa-ticket"></i></span>
+                    <span class="site-brand__text">
+                        <span>BookMyTicket</span>
+                        <span>Movie booking made simple</span>
+                    </span>
+                </a>
+                <nav class="site-nav" aria-label="Primary">
+                    <a class="site-nav__link" href="{% url 'home' %}">Home</a>
+                    <a class="site-nav__link" href="{% url 'movie_list' %}">Movies</a>
+                    {% if request.user.is_authenticated %}
+                        <a class="site-nav__link" href="{% url 'profile' %}">Profile</a>
+                        <a class="site-nav__link site-nav__link--primary" href="{% url 'logout' %}">Logout</a>
+                    {% else %}
+                        <a class="site-nav__link" href="{% url 'login' %}">Login</a>
+                        <a class="site-nav__link site-nav__link--primary" href="{% url 'register' %}">Register</a>
+                    {% endif %}
+                </nav>
+            </div>
+        </header>
 
-    <main>
-        {% block content %}{% endblock %}
-    </main>
+        <main class="site-main">
+            {% block content %}{% endblock %}
+        </main>
+
+        <footer class="site-footer">
+            &copy; 2026 BookMyTicket
+        </footer>
+    </div>
 
     {% block extra_scripts %}{% endblock %}
 </body>

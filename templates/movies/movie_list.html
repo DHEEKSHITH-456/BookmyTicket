@@ -1,281 +1,444 @@
-{% extends 'base.html' %}
-{% load static %}
+{% extends 'users/basic.html' %}
 
-{% block title %}BookMyTicket - Movie Tickets Online{% endblock %}
+{% block title %}Movies — BookMyTicket{% endblock %}
 
 {% block content %}
-<div class="bms-wrapper">
-    
-    <!-- Clean Minimal Search & Filter Bar -->
-    <div class="filter-navbar">
-        <div class="filter-nav-container">
-            <h1 class="nav-brand-title">Movies in Your Area</h1>
-            
-            <form method="GET" action="{% url 'movie_list' %}" class="bms-search-box">
-                <i class="fas fa-search search-lens"></i>
-                <input type="text" name="search" placeholder="Search for Movies..." value="{{ request.GET.search }}">
+<div class="ml-wrapper">
+
+    <!-- Filter Bar -->
+    <div class="ml-filter-bar">
+        <div class="ml-filter-inner">
+            <div class="ml-filter-left">
+                <h1 class="ml-page-title">Movies in Your City</h1>
+                <div class="ml-genre-pills">
+                    <a href="{% url 'movie_list' %}" class="genre-pill {% if not selected_genre or selected_genre == 'All' %}active{% endif %}">All</a>
+                    <a href="{% url 'movie_list' %}?genre=Action" class="genre-pill {% if selected_genre == 'Action' %}active{% endif %}">Action</a>
+                    <a href="{% url 'movie_list' %}?genre=Drama" class="genre-pill {% if selected_genre == 'Drama' %}active{% endif %}">Drama</a>
+                    <a href="{% url 'movie_list' %}?genre=Sci-Fi" class="genre-pill {% if selected_genre == 'Sci-Fi' %}active{% endif %}">Sci-Fi</a>
+                    <a href="{% url 'movie_list' %}?genre=Comedy" class="genre-pill {% if selected_genre == 'Comedy' %}active{% endif %}">Comedy</a>
+                    <a href="{% url 'movie_list' %}?genre=Crime" class="genre-pill {% if selected_genre == 'Crime' %}active{% endif %}">Crime</a>
+                    <a href="{% url 'movie_list' %}?genre=Animation" class="genre-pill {% if selected_genre == 'Animation' %}active{% endif %}">Animation</a>
+                    <a href="{% url 'movie_list' %}?genre=Adventure" class="genre-pill {% if selected_genre == 'Adventure' %}active{% endif %}">Adventure</a>
+                </div>
+            </div>
+            <form method="GET" action="{% url 'movie_list' %}" class="ml-search-form">
+                <i class="fas fa-search ml-search-icon"></i>
+                <input type="text" name="search" placeholder="Search movies..." value="{{ request.GET.search }}">
                 {% if request.GET.search %}
-                    <a href="{% url 'movie_list' %}" class="clear-search-x">×</a>
+                    <a href="{% url 'movie_list' %}" class="ml-clear-btn">&times;</a>
                 {% endif %}
             </form>
         </div>
     </div>
 
-    <!-- Main Section Content Layout -->
-    <div class="main-layout-container">
-        
-        <div class="content-header">
-            <h2 class="section-main-heading">Recommended Movies</h2>
-        </div>
-
-        <!-- BookMyShow Styled Card Grid -->
-        <div class="bms-movie-grid">
-            {% for movie in movies %}
-                <div class="bms-card">
-                    <!-- Direct Click Link targeting the card action -->
-                    <a href="{% url 'theater_list' movie.id %}" class="card-anchor-wrapper">
-                        
-                        <div class="poster-box">
-                            {% if movie.image %}
-                                <img src="{{ movie.image.url }}" alt="{{ movie.name }}" class="actual-poster-img">
-                            {% else %}
-                                <div class="no-poster-graphic">
-                                    <i class="fas fa-image"></i>
-                                    <span>Poster Unavailable</span>
-                                </div>
-                            {% endif %}
-                        </div>
-
-                        <div class="movie-info-block">
-                            <h3 class="bms-movie-title">{{ movie.name }}</h3>
-                            <span class="bms-genre-text">{{ movie.genre|default:"Action / Drama / Cinematic" }}</span>
-                        </div>
-                    </a>
-                </div>
-            {% empty %}
-                <div class="bms-empty-state">
-                    <i class="fas fa-exclamation-circle empty-icon-graphic"></i>
-                    <h3>No Movies Found</h3>
-                    <p>We couldn't find anything matching your search term. Let's try browsing everything instead!</p>
-                    <a href="{% url 'movie_list' %}" class="bms-reset-btn">Clear Search</a>
-                </div>
-            {% endfor %}
+    <!-- Language/Format Pills -->
+    <div class="ml-format-strip">
+        <div class="ml-format-inner">
+            <span class="format-chip active"><i class="fas fa-globe"></i> All Languages</span>
+            <span class="format-chip">Hindi</span>
+            <span class="format-chip">English</span>
+            <span class="format-chip">Telugu</span>
+            <span class="format-chip">Tamil</span>
+            <span class="format-chip">Kannada</span>
+            <span class="format-divider"></span>
+            <span class="format-chip">2D</span>
+            <span class="format-chip">3D</span>
+            <span class="format-chip">IMAX</span>
+            <span class="format-chip">4DX</span>
         </div>
     </div>
 
+    <!-- Movie Grid -->
+    <div class="ml-content">
+        <div class="ml-grid">
+            {% for movie in movies %}
+            <a href="{% url 'theater_list' movie.id %}" class="ml-card" style="animation-delay: {{ forloop.counter0 }}00ms;">
+                <div class="ml-poster">
+                    {% if movie.image %}
+                        <img src="{{ movie.image.url }}" alt="{{ movie.name }}">
+                    {% else %}
+                        <div class="ml-no-poster">
+                            <i class="fas fa-image"></i>
+                            <span>No Poster</span>
+                        </div>
+                    {% endif %}
+
+                    <!-- Rating Badge -->
+                    <div class="ml-rating-badge">
+                        <i class="fas fa-star"></i>
+                        <span>{{ movie.rating }}/10</span>
+                    </div>
+
+                    <!-- Hover Overlay -->
+                    <div class="ml-card-overlay">
+                        <span class="ml-book-btn">Book Tickets</span>
+                    </div>
+                </div>
+                <div class="ml-info">
+                    <h3 class="ml-title">{{ movie.name }}</h3>
+                    <span class="ml-genre">{{ movie.genre|default:"Drama / Action" }}</span>
+                </div>
+            </a>
+            {% empty %}
+            <div class="ml-empty">
+                <div class="ml-empty-icon"><i class="fas fa-film"></i></div>
+                <h3>No Movies Found</h3>
+                <p>Try a different search or browse all movies.</p>
+                <a href="{% url 'movie_list' %}" class="ml-empty-btn">View All Movies</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
 </div>
 
-<!-- BookMyShow Light Theme CSS Rules -->
 <style>
-    /* Light Theme Base Setup */
-    .bms-wrapper {
-        background-color: #f5f5f5; /* App light gray background tint */
-        color: #222222;
-        font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
+    .ml-wrapper {
+        background: #f5f5f5;
         min-height: 100vh;
-        padding-bottom: 60px;
+        font-family: 'Inter', sans-serif;
     }
 
-    /* Top Filter Navbar Layout */
-    .filter-navbar {
-        background-color: #ffffff;
-        border-bottom: 1px solid #e5e5e5;
-        padding: 15px 20px;
+    /* Filter Bar */
+    .ml-filter-bar {
+        background: #fff;
+        border-bottom: 1px solid #e8e8e8;
+        padding: 18px 0;
         position: sticky;
-        top: 0;
-        z-index: 100;
+        top: 64px;
+        z-index: 50;
     }
 
-    .filter-nav-container {
-        max-width: 1200px;
+    .ml-filter-inner {
+        max-width: 1240px;
         margin: 0 auto;
+        padding: 0 20px;
         display: flex;
         justify-content: space-between;
         align-items: center;
         gap: 20px;
+        flex-wrap: wrap;
     }
 
-    .nav-brand-title {
+    .ml-filter-left {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .ml-page-title {
         font-size: 22px;
         font-weight: 700;
-        color: #333333;
+        color: #222;
         margin: 0;
     }
 
-    /* BookMyShow App Minimal Search Box style */
-    .bms-search-box {
+    .ml-genre-pills {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .genre-pill {
+        padding: 6px 16px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #555;
+        background: #f0f0f0;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        border: 1px solid transparent;
+    }
+
+    .genre-pill:hover,
+    .genre-pill.active {
+        background: #fff;
+        color: #F84464;
+        border-color: #F84464;
+    }
+
+    /* Search */
+    .ml-search-form {
         display: flex;
         align-items: center;
-        background: #ffffff;
-        border: 1px solid #ced4da;
-        border-radius: 4px;
-        width: 100%;
-        max-width: 350px;
-        padding: 6px 12px;
+        background: #f5f5f5;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 8px 14px;
+        min-width: 280px;
         position: relative;
     }
 
-    .search-lens {
-        color: #777777;
-        font-size: 14px;
+    .ml-search-form:focus-within {
+        border-color: #F84464;
+        box-shadow: 0 0 0 3px rgba(248,68,100,0.1);
+    }
+
+    .ml-search-icon {
+        color: #999;
+        font-size: 13px;
         margin-right: 10px;
     }
 
-    .bms-search-box input {
+    .ml-search-form input {
         border: none;
+        background: transparent;
+        font-size: 14px;
+        color: #222;
         outline: none;
         width: 100%;
-        font-size: 14px;
-        color: #333333;
+        font-family: inherit;
     }
 
-    .clear-search-x {
-        text-decoration: none;
-        color: #999999;
-        font-size: 18px;
+    .ml-clear-btn {
+        color: #999;
+        font-size: 20px;
         font-weight: bold;
-        position: absolute;
-        right: 12px;
+        text-decoration: none;
+        margin-left: 8px;
     }
 
-    /* Main Container Content */
-    .main-layout-container {
-        max-width: 1200px;
+    /* Format Strip */
+    .ml-format-strip {
+        background: #fff;
+        border-bottom: 1px solid #e8e8e8;
+        padding: 10px 0;
+    }
+
+    .ml-format-inner {
+        max-width: 1240px;
         margin: 0 auto;
-        padding: 30px 20px;
+        padding: 0 20px;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
     }
 
-    .content-header {
-        margin-bottom: 20px;
-        text-align: left;
+    .format-chip {
+        padding: 5px 14px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 500;
+        color: #666;
+        background: #f5f5f5;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
     }
 
-    .section-main-heading {
-        font-size: 24px;
-        font-weight: 700;
-        color: #333333;
-        margin: 0;
+    .format-chip:hover,
+    .format-chip.active {
+        background: #F84464;
+        color: #fff;
     }
 
-    /* Grid Layout framework matching official tile columns */
-    .bms-movie-grid {
+    .format-divider {
+        width: 1px;
+        height: 20px;
+        background: #ddd;
+        margin: 0 6px;
+    }
+
+    /* Movie Grid */
+    .ml-content {
+        max-width: 1240px;
+        margin: 0 auto;
+        padding: 30px 20px 60px;
+    }
+
+    .ml-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
         gap: 24px;
     }
 
-    /* Individual BookMyShow App Movie Tile Card layout */
-    .bms-card {
-        background: transparent;
-        border-radius: 0px;
-        overflow: hidden;
-        transition: transform 0.2s;
-    }
-
-    .card-anchor-wrapper {
+    .ml-card {
         text-decoration: none;
         display: block;
+        animation: fadeInUp 0.5s ease forwards;
+        opacity: 0;
     }
 
-    /* Fixed Aspect Ratio Poster Box wrapper */
-    .poster-box {
+    @keyframes fadeInUp {
+        to { opacity: 1; transform: translateY(0); }
+        from { opacity: 0; transform: translateY(16px); }
+    }
+
+    .ml-poster {
         width: 100%;
-        height: 330px;
-        border-radius: 10px; /* Rounded poster look */
+        height: 310px;
+        border-radius: 12px;
         overflow: hidden;
-        background-color: #e0e0e0;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         position: relative;
+        background: #e0e0e0;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
     }
 
-    .actual-poster-img {
+    .ml-poster img {
         width: 100%;
         height: 100%;
         object-fit: cover;
-        transition: opacity 0.2s;
+        transition: transform 0.4s ease;
     }
 
-    .bms-card:hover {
-        transform: translateY(-4px);
+    .ml-card:hover .ml-poster img {
+        transform: scale(1.06);
     }
 
-    .no-poster-graphic {
+    .ml-no-poster {
         width: 100%;
         height: 100%;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 10px;
-        color: #888888;
-        background: #e9ecef;
+        gap: 8px;
+        color: #aaa;
+        background: #eee;
     }
 
-    .no-poster-graphic i {
+    .ml-no-poster i {
         font-size: 36px;
     }
 
-    /* Text info row styling directly below the poster card blocks */
-    .movie-info-block {
-        padding: 12px 2px 4px 2px;
-        text-align: left;
+    /* Rating Badge */
+    .ml-rating-badge {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 10px 14px;
+        background: linear-gradient(to top, rgba(0,0,0,0.85), transparent);
+        display: flex;
+        align-items: center;
+        gap: 6px;
     }
 
-    .bms-movie-title {
-        font-size: 16px;
+    .ml-rating-badge i {
+        color: #F84464;
+        font-size: 12px;
+    }
+
+    .ml-rating-badge span {
+        color: #fff;
+        font-size: 13px;
         font-weight: 600;
-        color: #222222;
-        margin: 0 0 4px 0;
+    }
+
+    /* Hover Overlay */
+    .ml-card-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0,0,0,0.45);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    .ml-card:hover .ml-card-overlay {
+        opacity: 1;
+    }
+
+    .ml-book-btn {
+        background: #F84464;
+        color: #fff;
+        font-size: 13px;
+        font-weight: 700;
+        padding: 10px 24px;
+        border-radius: 6px;
+        box-shadow: 0 4px 14px rgba(248,68,100,0.4);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Info */
+    .ml-info {
+        padding: 12px 4px 4px;
+    }
+
+    .ml-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: #222;
+        margin: 0 0 3px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
     }
 
-    .bms-genre-text {
-        font-size: 14px;
-        color: #666666;
-        display: block;
+    .ml-genre {
+        font-size: 12px;
+        color: #888;
     }
 
-    /* Empty search layout box indicators */
-    .bms-empty-state {
+    /* Empty State */
+    .ml-empty {
         grid-column: 1 / -1;
         text-align: center;
-        padding: 50px 20px;
-        background: #ffffff;
-        border-radius: 8px;
-        border: 1px solid #e5e5e5;
+        padding: 60px 20px;
+        background: #fff;
+        border-radius: 12px;
+        border: 1px dashed #ddd;
     }
 
-    .empty-icon-graphic {
-        font-size: 44px;
-        color: #dc3545;
-        margin-bottom: 12px;
+    .ml-empty-icon {
+        font-size: 48px;
+        color: #F84464;
+        margin-bottom: 16px;
     }
 
-    .bms-empty-state h3 { font-size: 18px; margin: 0 0 6px 0; color: #333333; }
-    .bms-empty-state p { color: #666666; font-size: 14px; margin: 0 0 20px 0; }
+    .ml-empty h3 {
+        font-size: 18px;
+        color: #222;
+        margin: 0 0 8px;
+    }
 
-    /* BookMyShow Signature Red/Pink brand color action button */
-    .bms-reset-btn {
-        display: inline-block;
-        background: #F84464; /* Brand BookMyShow Pink-Red */
-        color: #ffffff;
-        text-decoration: none;
-        padding: 10px 20px;
-        border-radius: 4px;
-        font-weight: 600;
+    .ml-empty p {
+        color: #888;
         font-size: 14px;
+        margin: 0 0 20px;
     }
 
-    /* Responsive Adjustments */
-    @media (max-width: 576px) {
-        .filter-nav-container { flex-direction: column; align-items: flex-start; }
-        .bms-search-box { max-width: 100%; }
-        .bms-movie-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; }
-        .poster-box { height: 240px; }
-        .bms-movie-title { font-size: 14px; }
-        .bms-genre-text { font-size: 12px; }
+    .ml-empty-btn {
+        display: inline-block;
+        background: #F84464;
+        color: #fff;
+        font-size: 14px;
+        font-weight: 600;
+        padding: 10px 24px;
+        border-radius: 6px;
+        text-decoration: none;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .ml-filter-inner {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .ml-search-form {
+            min-width: 100%;
+        }
+
+        .ml-grid {
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 16px;
+        }
+
+        .ml-poster {
+            height: 230px;
+        }
+
+        .ml-filter-bar {
+            top: 56px;
+        }
     }
 </style>
 {% endblock %}

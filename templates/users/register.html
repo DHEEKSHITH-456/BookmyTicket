@@ -1,92 +1,253 @@
 {% extends 'users/basic.html' %}
 
-{% block title %}Register - BookMyTicket{% endblock %}
+{% block title %}Create Account — BookMyTicket{% endblock %}
 
 {% block content %}
-<div class="register-wrapper">
-    <div class="register-card">
-        <div class="register-header">
-            <h2>Create Account</h2>
-            <p>Join BookMyTicket to browse movies and secure seats instantly</p>
+<div class="reg-wrapper">
+    <div class="reg-card">
+        <div class="reg-header">
+            <div class="reg-icon-circle">
+                <i class="fa-solid fa-user-plus"></i>
+            </div>
+            <h1>Join BookMyTicket</h1>
+            <p>Sign up to discover movies, pick seats, and book faster.</p>
         </div>
-        
-        <!-- Check if your view context is 'forms' or 'form' and match it below -->
-        <form method="POST" action="{% url 'register' %}" class="register-form">
+
+        <form method="POST" action="{% url 'register' %}" class="reg-form" novalidate>
             {% csrf_token %}
-            
-            <!-- Username Field -->
-            <div class="input-group-container">
-                <label for="{{ forms.username.id_for_label }}" class="field-label">Username</label>
-                <div class="input-field-wrapper">
-                    <span class="field-icon">
-                        <i class="fas fa-user"></i>
-                    </span>
-                    {{ forms.username }}
+
+            {% if form.non_field_errors %}
+                <div class="reg-alert">
+                    {{ form.non_field_errors }}
                 </div>
-            </div>
-            
-            <!-- Email Field -->
-            <div class="input-group-container">
-                <label for="{{ forms.email.id_for_label }}" class="field-label">Email Address</label>
-                <div class="input-field-wrapper">
-                    <span class="field-icon">
-                        <i class="fas fa-envelope"></i>
-                    </span>
-                    {{ forms.email }}
+            {% endif %}
+
+            <!-- Username -->
+            <div class="reg-field">
+                <label for="{{ form.username.id_for_label }}" class="reg-label">Username</label>
+                <div class="reg-input-wrap">
+                    <i class="fa-regular fa-user reg-input-icon"></i>
+                    {{ form.username }}
                 </div>
+                {% for error in form.username.errors %}
+                    <div class="reg-error">{{ error }}</div>
+                {% endfor %}
             </div>
-            
-            <!-- Password Field -->
-            <div class="input-group-container">
-                <label for="{{ forms.password.id_for_label }}" class="field-label">Password</label>
-                <div class="input-field-wrapper">
-                    <span class="field-icon">
-                        <i class="fas fa-lock"></i>
-                    </span>
-                    {{ forms.password }}
+
+            <!-- Email -->
+            <div class="reg-field">
+                <label for="{{ form.email.id_for_label }}" class="reg-label">Email</label>
+                <div class="reg-input-wrap">
+                    <i class="fa-regular fa-envelope reg-input-icon"></i>
+                    {{ form.email }}
                 </div>
+                {% for error in form.email.errors %}
+                    <div class="reg-error">{{ error }}</div>
+                {% endfor %}
             </div>
-            
-            <button type="submit" class="submit-btn">
-                <i class="fas fa-user-plus me-2"></i> Register
-            </button>
+
+            <!-- Password -->
+            <div class="reg-field">
+                <label for="{{ form.password1.id_for_label }}" class="reg-label">Password</label>
+                <div class="reg-input-wrap">
+                    <i class="fa-solid fa-lock reg-input-icon"></i>
+                    {{ form.password1 }}
+                </div>
+                <div class="reg-hint">At least 8 characters, not too common.</div>
+                {% for error in form.password1.errors %}
+                    <div class="reg-error">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <!-- Confirm Password -->
+            <div class="reg-field">
+                <label for="{{ form.password2.id_for_label }}" class="reg-label">Confirm Password</label>
+                <div class="reg-input-wrap">
+                    <i class="fa-solid fa-lock reg-input-icon"></i>
+                    {{ form.password2 }}
+                </div>
+                {% for error in form.password2.errors %}
+                    <div class="reg-error">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <button type="submit" class="reg-submit-btn">Create Account</button>
         </form>
-        
-        <div class="register-footer-links">
-            <p>Already have an account? <a href="{% url 'login' %}" class="login-link">Login here</a></p>
-        </div>
+
+        <p class="reg-footer">
+            Already have an account? <a href="{% url 'login' %}">Sign in</a>
+        </p>
     </div>
 </div>
 
-<!-- Unified Stylesheet Embedding -->
 <style>
-    .register-wrapper { min-height: calc(100vh - 160px); display: flex; justify-content: center; align-items: center; background-color: #f8f9fa; padding: 40px 20px; font-family: 'Segoe UI', sans-serif; }
-    .register-card { background: #ffffff; max-width: 420px; width: 100%; padding: 40px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08); }
-    .register-header h2 { margin: 0 0 8px 0; color: #212529; font-size: 28px; font-weight: 700; text-align: center; }
-    .register-header p { margin: 0 0 30px 0; color: #6c757d; font-size: 14px; text-align: center; line-height: 1.4; }
-    .input-group-container { margin-bottom: 20px; text-align: left; }
-    .field-label { display: block; font-size: 14px; font-weight: 600; color: #495057; margin-bottom: 8px; }
-    .input-field-wrapper { display: flex; align-items: center; position: relative; border: 1px solid #ced4da; border-radius: 8px; background: #ffffff; transition: border-color 0.2s, box-shadow 0.2s; }
-    .input-field-wrapper:focus-within { border-color: #df3848; box-shadow: 0 0 0 3px rgba(223, 56, 72, 0.15); }
-    .field-icon { padding: 12px 14px; color: #a8aeb4; display: flex; align-items: center; justify-content: center; min-width: 45px; }
-    .form-input-element { width: 100%; border: none !important; outline: none !important; padding: 12px 14px 12px 0; font-size: 15px; color: #212529; background: transparent; }
-    .login-link { color: #df3848; font-size: 14px; text-decoration: none; font-weight: 500; }
-    .login-link:hover { text-decoration: underline; }
-    .submit-btn { width: 100%; padding: 14px; background-color: #df3848; color: #ffffff; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background-color 0.2s; margin-top: 10px; }
-    .submit-btn:hover { background-color: #c42e3c; }
-    .register-footer-links { margin-top: 25px; text-align: center; font-size: 14px; color: #6c757d; }
-</style>
+    .reg-wrapper {
+        min-height: calc(100vh - 200px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: linear-gradient(135deg, #f5f5f5 0%, #eee 100%);
+        padding: 40px 20px;
+    }
 
-<script>
-    document.addEventListener('DOMContentLoaded', function(){ 
-        // Handles inject styling onto native fields dynamically
-        const usernameInput = document.getElementById('{{ forms.username.id_for_label }}');
-        const emailInput = document.getElementById('{{ forms.email.id_for_label }}');
-        const passwordInput = document.getElementById('{{ forms.password.id_for_label }}');
-        
-        if (usernameInput) usernameInput.classList.add('form-input-element');
-        if (emailInput) emailInput.classList.add('form-input-element');
-        if (passwordInput) passwordInput.classList.add('form-input-element');
-    });
-</script>
+    .reg-card {
+        max-width: 460px;
+        width: 100%;
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+        padding: 36px;
+    }
+
+    .reg-header {
+        text-align: center;
+        margin-bottom: 28px;
+    }
+
+    .reg-icon-circle {
+        width: 56px;
+        height: 56px;
+        border-radius: 16px;
+        background: linear-gradient(135deg, #F84464, #ff6b81);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px;
+        color: #fff;
+        font-size: 22px;
+        box-shadow: 0 6px 20px rgba(248,68,100,0.3);
+    }
+
+    .reg-header h1 {
+        margin: 0 0 8px;
+        font-size: 24px;
+        font-weight: 700;
+        color: #222;
+    }
+
+    .reg-header p {
+        margin: 0;
+        color: #888;
+        font-size: 14px;
+    }
+
+    .reg-form {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .reg-field {}
+
+    .reg-label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: #555;
+        margin-bottom: 6px;
+    }
+
+    .reg-input-wrap {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0 14px;
+        min-height: 48px;
+        border-radius: 10px;
+        border: 1px solid #e0e0e0;
+        background: #fafafa;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .reg-input-wrap:focus-within {
+        border-color: #F84464;
+        box-shadow: 0 0 0 3px rgba(248,68,100,0.1);
+        background: #fff;
+    }
+
+    .reg-input-icon {
+        color: #bbb;
+        width: 16px;
+        text-align: center;
+        flex-shrink: 0;
+    }
+
+    .reg-input-wrap input {
+        width: 100%;
+        border: 0;
+        outline: 0;
+        background: transparent;
+        font: inherit;
+        padding: 12px 0;
+        color: #222;
+        font-size: 14px;
+    }
+
+    .reg-input-wrap input::placeholder {
+        color: #bbb;
+    }
+
+    .reg-alert {
+        border-radius: 10px;
+        padding: 12px 14px;
+        font-size: 13px;
+        background: rgba(220, 53, 69, 0.08);
+        color: #b91c1c;
+        border: 1px solid rgba(220, 53, 69, 0.15);
+    }
+
+    .reg-error {
+        color: #dc3545;
+        font-size: 12px;
+        margin-top: 4px;
+    }
+
+    .reg-hint {
+        color: #999;
+        font-size: 12px;
+        margin-top: 4px;
+    }
+
+    .reg-submit-btn {
+        min-height: 48px;
+        border: 0;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #F84464, #ff6b81);
+        color: #fff;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 6px 20px rgba(248,68,100,0.25);
+        transition: all 0.25s;
+        margin-top: 8px;
+    }
+
+    .reg-submit-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 28px rgba(248,68,100,0.35);
+    }
+
+    .reg-footer {
+        margin: 22px 0 0;
+        text-align: center;
+        color: #888;
+        font-size: 14px;
+    }
+
+    .reg-footer a {
+        color: #F84464;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .reg-footer a:hover {
+        text-decoration: underline;
+    }
+
+    @media (max-width: 480px) {
+        .reg-card {
+            padding: 24px;
+        }
+    }
+</style>
 {% endblock %}

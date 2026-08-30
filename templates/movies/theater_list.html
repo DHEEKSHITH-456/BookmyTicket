@@ -1,321 +1,543 @@
-{% extends 'base.html' %}
-{% load static %}
+{% extends 'users/basic.html' %}
 
-{% block title %}Book Tickets for {{ movie.name }} - BookMyTicket{% endblock %}
+{% block title %}{{ movie.name }} — Showtimes | BookMyTicket{% endblock %}
 
 {% block content %}
-<div class="bms-theaters-wrapper">
-    
-    <!-- Top Movie Sticky Overview Header Bar -->
-    <div class="movie-spotlight-bar">
-        <div class="spotlight-container">
-            <h1 class="spotlight-movie-title">{{ movie.name }}</h1>
-            <div class="spotlight-meta-tags">
-                <span class="meta-badge-item">{{ movie.genre|default:"Action / Drama" }}</span>
-                <span class="meta-divider">•</span>
-                <span class="language-badge">2D / UA</span>
+<div class="tl-wrapper">
+
+    <!-- Movie Detail Header -->
+    <div class="tl-movie-header">
+        <div class="tl-header-inner">
+            <div class="tl-movie-meta">
+                <h1 class="tl-movie-name">{{ movie.name }}</h1>
+                <div class="tl-meta-row">
+                    <span class="tl-rating-pill"><i class="fas fa-star"></i> {{ movie.rating }}/10</span>
+                    <span class="tl-meta-badge">{{ movie.genre|default:"Action / Drama" }}</span>
+                    <span class="tl-meta-dot">&bull;</span>
+                    <span class="tl-meta-text">{{ movie.duration|default:"2h 30m" }} min</span>
+                    <span class="tl-meta-dot">&bull;</span>
+                    <span class="tl-meta-badge tl-cert-badge">UA</span>
+                    <span class="tl-meta-dot">&bull;</span>
+                    <span class="tl-meta-text">{{ movie.release_date|date:"d M, Y" }}</span>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Main Content Body Area -->
-    <div class="theaters-layout-container">
-        <div class="theater-listings-header">
-            <h2 class="listings-title-heading"><i class="fas fa-building hospitality-icon"></i> Available Cinemas</h2>
-        </div>
-
-        <!-- Venue Listing Cards Container -->
-        <div class="theaters-cards-stack">
-            {% for theater in theaters %}
-                <div class="bms-theater-card">
-                    <div class="theater-info-side">
-                        <div class="heart-icon-wrapper">
-                            <i class="far fa-heart bookmark-heart"></i>
-                        </div>
-                        <div class="theater-text-details">
-                            <h3 class="theater-title-name">{{ theater.name }}</h3>
-                            <p class="theater-location-subtext">
-                                <i class="fas fa-map-marker-alt"></i> {{ theater.location|default:"Digital Cinema Screen Layouts, Metro Area" }}
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- App Styled Interactive Showtimes Layout Blocks -->
-                    <div class="theater-showtimes-side">
-                        <div class="showtime-pill-grid">
-                            <!-- Direct operational link targeting your app's seat layout selection view routing -->
-                            <a href="{% url 'seat_selection' theater.id %}" class="showtime-anchor-node">
-                                <span class="time-stamp">10:30 AM</span>
-                                <span class="screen-type-tag">Dolby 7.1</span>
-                            </a>
-                            <a href="{% url 'seat_selection' theater.id %}" class="showtime-anchor-node">
-                                <span class="time-stamp">02:15 PM</span>
-                                <span class="screen-type-tag">4K Laser</span>
-                            </a>
-                            <a href="{% url 'seat_selection' theater.id %}" class="showtime-anchor-node">
-                                <span class="time-stamp">06:45 PM</span>
-                                <span class="screen-type-tag">Dolby Atmos</span>
-                            </a>
-                            <a href="{% url 'seat_selection' theater.id %}" class="showtime-anchor-node">
-                                <span class="time-stamp">09:30 PM</span>
-                                <span class="screen-type-tag">2D Digital</span>
-                            </a>
-                        </div>
-                        <div class="cancellation-policy-tag">
-                            <i class="fas fa-info-circle"></i> Cancellation Available
-                        </div>
-                    </div>
-                </div>
-            {% empty %}
-                <div class="bms-empty-theaters-box">
-                    <i class="fas fa-store-alt-slash empty-icon-box"></i>
-                    <h3>No Theaters Playing This Movie</h3>
-                    <p>There are currently no active screen schedules or theater allocations configured for this movie entity track.</p>
-                    <a href="{% url 'movie_list' %}" class="bms-back-home-btn">Back to Home</a>
-                </div>
-            {% endfor %}
+    <!-- Date Picker Strip -->
+    <div class="tl-date-strip">
+        <div class="tl-date-inner">
+            <div class="tl-date-tab active">
+                <span class="tl-date-day">Today</span>
+                <span class="tl-date-num">30 Aug</span>
+            </div>
+            <div class="tl-date-tab">
+                <span class="tl-date-day">Sun</span>
+                <span class="tl-date-num">31 Aug</span>
+            </div>
+            <div class="tl-date-tab">
+                <span class="tl-date-day">Mon</span>
+                <span class="tl-date-num">01 Sep</span>
+            </div>
+            <div class="tl-date-tab">
+                <span class="tl-date-day">Tue</span>
+                <span class="tl-date-num">02 Sep</span>
+            </div>
+            <div class="tl-date-tab">
+                <span class="tl-date-day">Wed</span>
+                <span class="tl-date-num">03 Sep</span>
+            </div>
+            <div class="tl-date-tab">
+                <span class="tl-date-day">Thu</span>
+                <span class="tl-date-num">04 Sep</span>
+            </div>
+            <div class="tl-date-tab">
+                <span class="tl-date-day">Fri</span>
+                <span class="tl-date-num">05 Sep</span>
+            </div>
         </div>
     </div>
 
+    <!-- Filter Chips -->
+    <div class="tl-filter-row">
+        <div class="tl-filter-inner">
+            <span class="tl-filter-chip active"><i class="fas fa-sliders-h"></i> Filter</span>
+            <span class="tl-filter-chip">Hindi</span>
+            <span class="tl-filter-chip">English</span>
+            <span class="tl-filter-chip">2D</span>
+            <span class="tl-filter-chip">3D</span>
+            <span class="tl-filter-chip">IMAX 3D</span>
+            <span class="tl-filter-chip">4DX</span>
+            <span class="tl-filter-chip">Dolby Atmos</span>
+        </div>
+    </div>
+
+    <!-- Theater Listings -->
+    <div class="tl-content">
+        <div class="tl-theaters-list">
+            {% for theater in theaters %}
+            <div class="tl-theater-card">
+                <div class="tl-theater-left">
+                    <div class="tl-fav-btn"><i class="far fa-heart"></i></div>
+                    <div class="tl-theater-info">
+                        <h3 class="tl-theater-name">{{ theater.name }}</h3>
+                        <p class="tl-theater-loc">
+                            <i class="fas fa-map-marker-alt"></i> {{ theater.location|default:"Metro Cinema Complex" }}
+                        </p>
+                        <div class="tl-theater-tags">
+                            <span class="tl-tag"><i class="fas fa-utensils"></i> F&B</span>
+                            <span class="tl-tag"><i class="fas fa-mobile-alt"></i> M-Ticket</span>
+                            <span class="tl-tag"><i class="fas fa-parking"></i> Parking</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="tl-theater-right">
+                    <div class="tl-showtime-grid">
+                        <a href="{% url 'seat_selection' theater.id %}" class="tl-showtime-pill">
+                            <span class="tl-time">10:30 AM</span>
+                            <span class="tl-screen">Dolby 7.1</span>
+                        </a>
+                        <a href="{% url 'seat_selection' theater.id %}" class="tl-showtime-pill">
+                            <span class="tl-time">02:15 PM</span>
+                            <span class="tl-screen">4K Laser</span>
+                        </a>
+                        <a href="{% url 'seat_selection' theater.id %}" class="tl-showtime-pill">
+                            <span class="tl-time">06:45 PM</span>
+                            <span class="tl-screen">Dolby Atmos</span>
+                        </a>
+                        <a href="{% url 'seat_selection' theater.id %}" class="tl-showtime-pill">
+                            <span class="tl-time">09:30 PM</span>
+                            <span class="tl-screen">2D Digital</span>
+                        </a>
+                    </div>
+                    <div class="tl-cancel-info">
+                        <i class="fas fa-info-circle"></i> Cancellation Available
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="tl-empty">
+                <i class="fas fa-store-alt-slash tl-empty-icon"></i>
+                <h3>No Theaters Found</h3>
+                <p>No cinemas are currently screening this movie. Please check back later.</p>
+                <a href="{% url 'movie_list' %}" class="tl-back-btn">Browse Movies</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
 </div>
 
-<!-- BookMyShow App Inspired Light Theaters Stylesheet -->
 <style>
-    /* Light Mode Structure Framework Context */
-    .bms-theaters-wrapper {
-        background-color: #f2f5f9; /* Soft pale application background canvas */
-        color: #333333;
-        font-family: 'Inter', 'Segoe UI', sans-serif;
+    .tl-wrapper {
+        background: #f5f5f5;
         min-height: 100vh;
-        padding-bottom: 60px;
+        font-family: 'Inter', sans-serif;
     }
 
-    /* Top Premium Sticky Header Panel style rules */
-    .movie-spotlight-bar {
-        background-color: #333545; /* Dark slate backdrop accent contrast panel */
-        color: #ffffff;
-        padding: 24px 20px;
-        text-align: left;
+    /* Movie Header */
+    .tl-movie-header {
+        background: linear-gradient(135deg, #2c2c54 0%, #1a1a2e 100%);
+        padding: 30px 0;
     }
 
-    .spotlight-container {
+    .tl-header-inner {
         max-width: 1000px;
         margin: 0 auto;
+        padding: 0 20px;
+        display: flex;
+        align-items: center;
+        gap: 24px;
     }
 
-    .spotlight-movie-title {
-        font-size: 32px;
+    .tl-movie-name {
+        color: #fff;
+        font-size: 30px;
         font-weight: 700;
-        margin: 0 0 8px 0;
+        margin: 0 0 12px;
         letter-spacing: -0.5px;
     }
 
-    .spotlight-meta-tags {
+    .tl-meta-row {
         display: flex;
         align-items: center;
         gap: 10px;
-        font-size: 14px;
-        color: #9aa0b4;
+        flex-wrap: wrap;
     }
 
-    .meta-badge-item {
-        border: 1px solid #4f536e;
-        padding: 2px 10px;
-        border-radius: 12px;
-        color: #ffffff;
+    .tl-rating-pill {
+        background: #1a8b3d;
+        color: #fff;
         font-size: 12px;
-        background-color: rgba(255,255,255,0.05);
+        font-weight: 700;
+        padding: 4px 12px;
+        border-radius: 4px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
     }
 
-    .language-badge {
-        font-weight: 600;
-        color: #ffffff;
+    .tl-rating-pill i {
+        font-size: 10px;
     }
 
-    /* Main Component Area Layout rules */
-    .theaters-layout-container {
+    .tl-meta-badge {
+        color: #fff;
+        font-size: 12px;
+        font-weight: 500;
+        padding: 3px 10px;
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 4px;
+        background: rgba(255,255,255,0.05);
+    }
+
+    .tl-cert-badge {
+        border-color: #F84464;
+        color: #F84464;
+    }
+
+    .tl-meta-dot {
+        color: rgba(255,255,255,0.3);
+        font-size: 8px;
+    }
+
+    .tl-meta-text {
+        color: rgba(255,255,255,0.65);
+        font-size: 13px;
+    }
+
+    /* Date Picker */
+    .tl-date-strip {
+        background: #fff;
+        border-bottom: 1px solid #e8e8e8;
+        position: sticky;
+        top: 64px;
+        z-index: 50;
+    }
+
+    .tl-date-inner {
         max-width: 1000px;
         margin: 0 auto;
-        padding: 30px 20px;
-    }
-
-    .theater-listings-header {
-        margin-bottom: 20px;
-        text-align: left;
-    }
-
-    .listings-title-heading {
-        font-size: 18px;
-        font-weight: 700;
-        color: #222222;
-        margin: 0;
+        padding: 0 20px;
         display: flex;
+        gap: 4px;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    .tl-date-inner::-webkit-scrollbar { display: none; }
+
+    .tl-date-tab {
+        display: flex;
+        flex-direction: column;
         align-items: center;
-        gap: 10px;
+        padding: 12px 20px;
+        cursor: pointer;
+        border-bottom: 3px solid transparent;
+        transition: all 0.2s;
+        min-width: max-content;
     }
 
-    .hospitality-icon {
-        color: #7e8599;
+    .tl-date-tab:hover {
+        background: #fafafa;
     }
 
-    /* Stack list of BookMyShow style individual elements */
-    .theaters-cards-stack {
+    .tl-date-tab.active {
+        border-bottom-color: #F84464;
+    }
+
+    .tl-date-day {
+        font-size: 11px;
+        font-weight: 600;
+        color: #888;
+        text-transform: uppercase;
+    }
+
+    .tl-date-tab.active .tl-date-day {
+        color: #F84464;
+    }
+
+    .tl-date-num {
+        font-size: 14px;
+        font-weight: 700;
+        color: #333;
+        margin-top: 2px;
+    }
+
+    .tl-date-tab.active .tl-date-num {
+        color: #F84464;
+    }
+
+    /* Filter Row */
+    .tl-filter-row {
+        background: #fff;
+        border-bottom: 1px solid #e8e8e8;
+        padding: 10px 0;
+    }
+
+    .tl-filter-inner {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 0 20px;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .tl-filter-chip {
+        padding: 5px 14px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 500;
+        color: #666;
+        background: #f5f5f5;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .tl-filter-chip:hover,
+    .tl-filter-chip.active {
+        background: #F84464;
+        color: #fff;
+    }
+
+    /* Theater Cards */
+    .tl-content {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 24px 20px 60px;
+    }
+
+    .tl-theaters-list {
         display: flex;
         flex-direction: column;
         gap: 16px;
     }
 
-    .bms-theater-card {
-        background: #ffffff;
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-        border: 1px solid #e5e9f0;
-        display: flex;
+    .tl-theater-card {
+        background: #fff;
+        border-radius: 10px;
+        border: 1px solid #eaeaea;
         padding: 24px;
-        align-items: center;
-        transition: box-shadow 0.2s;
-    }
-
-    .bms-theater-card:hover {
-        box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-    }
-
-    /* Left Side: Text and Location elements */
-    .theater-info-side {
-        flex: 1;
         display: flex;
         align-items: flex-start;
-        gap: 15px;
-        text-align: left;
-        padding-right: 20px;
-        border-right: 1px dashed #e5e9f0;
+        transition: box-shadow 0.25s;
     }
 
-    .bookmark-heart {
-        color: #9aa1b1;
+    .tl-theater-card:hover {
+        box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    }
+
+    .tl-theater-left {
+        flex: 1;
+        display: flex;
+        gap: 14px;
+        align-items: flex-start;
+        padding-right: 24px;
+        border-right: 1px dashed #e0e0e0;
+    }
+
+    .tl-fav-btn {
+        color: #bbb;
         font-size: 16px;
         cursor: pointer;
-        margin-top: 4px;
         transition: color 0.2s;
+        margin-top: 3px;
+        flex-shrink: 0;
     }
 
-    .bookmark-heart:hover {
+    .tl-fav-btn:hover {
         color: #F84464;
     }
 
-    .theater-title-name {
+    .tl-theater-name {
         font-size: 16px;
         font-weight: 600;
-        color: #222222;
-        margin: 0 0 6px 0;
+        color: #222;
+        margin: 0 0 6px;
     }
 
-    .theater-location-subtext {
+    .tl-theater-loc {
         font-size: 13px;
-        color: #666666;
-        margin: 0;
+        color: #888;
+        margin: 0 0 10px;
         display: flex;
         align-items: center;
         gap: 6px;
     }
 
-    .theater-location-subtext i {
-        color: #a0a5b5;
+    .tl-theater-loc i {
+        color: #bbb;
+        font-size: 12px;
     }
 
-    /* Right Side: Grid timing blocks attributes styling */
-    .theater-showtimes-side {
-        flex: 1.8;
-        padding-left: 30px;
+    .tl-theater-tags {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .tl-tag {
+        font-size: 10px;
+        font-weight: 600;
+        color: #888;
+        background: #f5f5f5;
+        padding: 3px 8px;
+        border-radius: 4px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        text-transform: uppercase;
+    }
+
+    /* Showtimes */
+    .tl-theater-right {
+        flex: 2;
+        padding-left: 24px;
         display: flex;
         flex-direction: column;
         gap: 12px;
-        text-align: left;
     }
 
-    .showtime-pill-grid {
+    .tl-showtime-grid {
         display: flex;
         flex-wrap: wrap;
-        gap: 12px;
+        gap: 10px;
     }
 
-    /* Interactive button node box links layout framework mapping */
-    .showtime-anchor-node {
+    .tl-showtime-pill {
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        border: 1px solid #c3cad9;
-        border-radius: 4px;
-        background: #ffffff;
         min-width: 100px;
-        padding: 8px 12px;
+        padding: 10px 16px;
+        border: 1px solid #d0d6e0;
+        border-radius: 6px;
         text-decoration: none;
-        transition: border-color 0.2s, background 0.2s;
+        transition: all 0.2s;
+        background: #fff;
     }
 
-    .showtime-anchor-node:hover {
-        border-color: #F84464; /* Highlight matching app border color focus rules */
+    .tl-showtime-pill:hover {
+        border-color: #F84464;
+        box-shadow: 0 2px 8px rgba(248,68,100,0.12);
     }
 
-    .time-stamp {
+    .tl-time {
         font-size: 14px;
-        font-weight: 500;
-        color: #4abd5d; /* Classic green showtime active alert color text */
+        font-weight: 600;
+        color: #4abd5d;
     }
 
-    .screen-type-tag {
+    .tl-showtime-pill:hover .tl-time {
+        color: #F84464;
+    }
+
+    .tl-screen {
         font-size: 10px;
-        color: #717b8c;
-        margin-top: 2px;
+        color: #888;
         text-transform: uppercase;
         font-weight: 600;
+        margin-top: 3px;
     }
 
-    .cancellation-policy-tag {
+    .tl-cancel-info {
         font-size: 12px;
-        color: #ff9f43; /* Amber alert icon styling rules context */
+        color: #ff9f43;
+        font-weight: 500;
         display: flex;
         align-items: center;
         gap: 6px;
-        font-weight: 500;
     }
 
-    /* Empty state layout parameters mapping items block */
-    .bms-empty-theaters-box {
+    /* Empty State */
+    .tl-empty {
         text-align: center;
-        background: #ffffff;
+        background: #fff;
         padding: 60px 20px;
-        border-radius: 8px;
-        border: 1px dashed #c3cad9;
+        border-radius: 12px;
+        border: 1px dashed #ddd;
     }
 
-    .empty-icon-box {
+    .tl-empty-icon {
         font-size: 48px;
-        color: #a0a5b5;
+        color: #ccc;
         margin-bottom: 16px;
     }
 
-    .bms-empty-theaters-box h3 { font-size: 18px; margin: 0 0 6px 0; color: #222222; }
-    .bms-empty-theaters-box p { color: #666666; font-size: 14px; margin: 0 0 24px 0; }
-
-    .bms-back-home-btn {
-        display: inline-block;
-        background: #F84464; /* BookMyShow Pink-Red primary color selector */
-        color: #ffffff;
-        text-decoration: none;
-        padding: 10px 24px;
-        border-radius: 4px;
-        font-weight: 600;
-        font-size: 14px;
+    .tl-empty h3 {
+        font-size: 18px;
+        color: #222;
+        margin: 0 0 8px;
     }
 
-    /* Responsive Flexbox collapse for small viewports and handheld devices */
+    .tl-empty p {
+        color: #888;
+        font-size: 14px;
+        margin: 0 0 24px;
+    }
+
+    .tl-back-btn {
+        display: inline-block;
+        background: #F84464;
+        color: #fff;
+        padding: 10px 24px;
+        border-radius: 6px;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    /* Responsive */
     @media (max-width: 768px) {
-        .bms-theater-card { flex-direction: column; align-items: flex-start; padding: 18px; }
-        .theater-info-side { border-right: none; border-bottom: 1px dashed #e5e9f0; padding-right: 0; padding-bottom: 14px; width: 100%; }
-        .theater-showtimes-side { padding-left: 0; padding-top: 14px; width: 100%; }
-        .spotlight-movie-title { font-size: 24px; }
+        .tl-theater-card {
+            flex-direction: column;
+            padding: 18px;
+        }
+
+        .tl-theater-left {
+            border-right: none;
+            border-bottom: 1px dashed #e0e0e0;
+            padding-right: 0;
+            padding-bottom: 16px;
+            width: 100%;
+        }
+
+        .tl-theater-right {
+            padding-left: 0;
+            padding-top: 16px;
+            width: 100%;
+        }
+
+        .tl-movie-name {
+            font-size: 24px;
+        }
+
+        .tl-date-strip {
+            top: 56px;
+        }
     }
 </style>
+
+<script>
+    // Date tab click handler
+    document.querySelectorAll('.tl-date-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.tl-date-tab').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+
+    // Favorite heart toggle
+    document.querySelectorAll('.tl-fav-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const icon = this.querySelector('i');
+            icon.classList.toggle('far');
+            icon.classList.toggle('fas');
+            this.style.color = icon.classList.contains('fas') ? '#F84464' : '#bbb';
+        });
+    });
+</script>
 {% endblock %}

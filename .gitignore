@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Vercel
+.vercel/
+
+# Static collection
+staticfiles/
+staticfiles_build/
+
+# Media uploads (optional, adjust if needed)
+# media/
+
+# Environment Variables
+.env
+.env.local
