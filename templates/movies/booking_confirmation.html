@@ -1,0 +1,136 @@
+{% extends "users/basic.html" %}
+
+{% block title %}Booking Confirmed — {{ booking.movie.name }} | BookMySeat{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+
+            <!-- Success Alert Header -->
+            <div class="text-center mb-4">
+                <div class="d-inline-flex align-items-center justify-content-center bg-success text-white rounded-circle shadow-sm mb-3" style="width: 80px; height: 80px; font-size: 2.5rem;">
+                    <i class="fas fa-check"></i>
+                </div>
+                <h2 class="font-weight-bold" style="color: #1a1a2e;">Booking Confirmed!</h2>
+                <p class="text-muted lead mb-0">Your tickets are confirmed and ready. An e-ticket with your QR code has been emailed to you!</p>
+            </div>
+
+            <!-- E-Ticket Card -->
+            <div class="card shadow border-0 rounded-lg overflow-hidden mb-4">
+                <div class="card-header bg-dark text-white p-4 d-flex flex-wrap justify-content-between align-items-center" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);">
+                    <div>
+                        <span class="badge badge-danger px-3 py-1 font-weight-bold mb-2" style="background-color: #F84464;">E-TICKET CONFIRMED</span>
+                        <h3 class="mb-0 font-weight-bold">{{ booking.movie.name }}</h3>
+                        <p class="small text-light mb-0">{{ booking.movie.genre|default:"Action" }} &bull; {{ booking.movie.language|default:"English" }}</p>
+                    </div>
+                    <div class="text-md-right mt-3 mt-md-0">
+                        <span class="small text-muted d-block">Booking ID</span>
+                        <strong class="text-warning font-weight-bold" style="font-size: 1.2rem; letter-spacing: 1px;">
+                            #{{ booking.booking_id|stringformat:"s"|slice:":8"|upper }}
+                        </strong>
+                    </div>
+                </div>
+
+                <div class="card-body p-4">
+                    <div class="row mb-4">
+                        <div class="col-sm-6 mb-3 mb-sm-0">
+                            <label class="small text-muted text-uppercase font-weight-bold mb-1 d-block">
+                                <i class="fas fa-film mr-1 text-danger"></i> Theater & Location
+                            </label>
+                            <h6 class="font-weight-bold mb-0 text-dark">{{ booking.theater.name }}</h6>
+                            <span class="small text-muted">{{ booking.theater.location|default:booking.theater.city }} ({{ booking.theater.city }})</span>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="small text-muted text-uppercase font-weight-bold mb-1 d-block">
+                                <i class="far fa-calendar-alt mr-1 text-danger"></i> Show Date & Time
+                            </label>
+                            <h6 class="font-weight-bold mb-0 text-dark">{{ booking.theater.time|date:"l, d F Y" }}</h6>
+                            <span class="small text-muted"><i class="far fa-clock mr-1"></i>{{ booking.theater.time|date:"g:i A" }}</span>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4 pt-3 border-top">
+                        <div class="col-sm-4 mb-3 mb-sm-0">
+                            <label class="small text-muted text-uppercase font-weight-bold mb-1 d-block">
+                                <i class="fas fa-chair mr-1 text-danger"></i> Seats Booked
+                            </label>
+                            <h5 class="font-weight-bold text-danger mb-0" style="color: #F84464 !important;">
+                                {{ seat_numbers }}
+                            </h5>
+                            <span class="small text-muted">{{ ticket_count }} Ticket{{ ticket_count|pluralize }}</span>
+                        </div>
+                        <div class="col-sm-4 mb-3 mb-sm-0">
+                            <label class="small text-muted text-uppercase font-weight-bold mb-1 d-block">
+                                <i class="fas fa-receipt mr-1 text-danger"></i> Payment Reference
+                            </label>
+                            <h6 class="font-weight-bold text-dark mb-0">{{ booking.payment_reference }}</h6>
+                            <span class="badge badge-success font-weight-normal"><i class="fas fa-check-circle mr-1"></i>Paid</span>
+                        </div>
+                        <div class="col-sm-4">
+                            <label class="small text-muted text-uppercase font-weight-bold mb-1 d-block">
+                                <i class="fas fa-rupee-sign mr-1 text-danger"></i> Total Amount
+                            </label>
+                            <h4 class="font-weight-bold text-success mb-0">₹{{ total_price }}</h4>
+                            <span class="small text-muted">Includes all taxes</span>
+                        </div>
+                    </div>
+
+                    <!-- Email Delivery Status Notification -->
+                    <div class="alert alert-info border-0 rounded-lg d-flex align-items-center mb-0" style="background-color: #e8f4fd;">
+                        <i class="fas fa-envelope-open-text fa-2x text-primary mr-3"></i>
+                        <div>
+                            <strong class="d-block text-dark">Automated Email Notification</strong>
+                            <span class="small text-muted">
+                                We've queued an asynchronous email confirmation with your attached PDF ticket & QR code to <strong>{{ user.email|default:user.username }}</strong>.
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Footer -->
+                <div class="card-footer bg-light p-3 d-flex flex-wrap align-items-center justify-content-between">
+                    <a href="{% url 'profile' %}" class="btn btn-outline-secondary rounded-pill px-4 mb-2 mb-sm-0">
+                        <i class="fas fa-user mr-1"></i> View in Profile
+                    </a>
+                    <div>
+                        <a href="{% url 'movie_list' %}" class="btn btn-light rounded-pill px-4 mr-2 border">
+                            <i class="fas fa-film mr-1"></i> Discover More
+                        </a>
+                        <a href="{% url 'download_ticket' booking.booking_id %}" class="btn btn-danger rounded-pill px-4 font-weight-bold shadow-sm" style="background-color: #F84464; border:none;">
+                            <i class="fas fa-download mr-1"></i> Download PDF Ticket
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notice Cards -->
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="card border-0 bg-white shadow-sm p-3 rounded-lg h-100">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-qrcode fa-2x text-danger mr-3"></i>
+                            <div>
+                                <h6 class="font-weight-bold mb-1">Entry Verification</h6>
+                                <p class="small text-muted mb-0">Show the QR code on your PDF ticket at the cinema entry gate for instant scanning.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="card border-0 bg-white shadow-sm p-3 rounded-lg h-100">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-history fa-2x text-primary mr-3"></i>
+                            <div>
+                                <h6 class="font-weight-bold mb-1">Download Anytime</h6>
+                                <p class="small text-muted mb-0">Access and re-download your PDF ticket anytime from your Bookings history in your profile.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
