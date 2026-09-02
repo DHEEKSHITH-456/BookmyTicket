@@ -4,6 +4,7 @@ Django settings for bookmyseat project.
 
 from pathlib import Path
 import os
+import shutil
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -12,6 +13,19 @@ SECRET_KEY = 'django-insecure-c8aetlj(=vp90n@#yoc^&d(_6ivp(d!bv-4-f!r$lawptjzrwu
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.vercel.app',
+    'https://*.now.sh',
+    'http://127.0.0.1',
+    'http://localhost',
+]
+
+# Use signed cookies for sessions so authentication persists across all serverless instances
+SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
+SESSION_COOKIE_HTTPONLY = True
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_COOKIE_AGE = 1209600  # 2 weeks
 
 # Application definition
 INSTALLED_APPS = [
@@ -40,17 +54,8 @@ MIDDLEWARE = [
 AUTH_USER_MODEL = 'auth.User'
 
 # Email Configuration
-# Console backend for development (prints emails to terminal)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = 'BookMySeat <noreply@bookmyseat.com>'
-
-# For production, switch to SMTP:
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'smtp.gmail.com'
-# EMAIL_PORT = 587
-# EMAIL_USE_TLS = True
-# EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
-# EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -79,12 +84,25 @@ TEMPLATES = [
 WSGI_APPLICATION = 'bookmyseat.wsgi.application'
 
 # Database
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+if os.environ.get('VERCEL'):
+    db_source = BASE_DIR / 'db.sqlite3'
+    db_target = Path('/tmp') / 'db.sqlite3'
+    if db_source.exists() and not db_target.exists():
+        shutil.copy2(db_source, db_target)
+    
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': db_target,
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -114,7 +132,6 @@ STORAGES = {
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # ─── Celery Configuration ───
-# Use Redis as message broker (install Redis locally or use free Redis Cloud)
 CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'redis://localhost:6379/0')
 CELERY_RESULT_BACKEND = 'django-db'
 CELERY_ACCEPT_CONTENT = ['json']
@@ -122,11 +139,8 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'Asia/Kolkata'
 
-# Retry policy for failed tasks
 CELERY_TASK_ACKS_LATE = True
 CELERY_TASK_REJECT_ON_WORKER_LOST = True
 
-# For local development without Redis — run tasks eagerly (synchronously)
-# Set to False in production with a running Celery worker + Redis
 CELERY_TASK_ALWAYS_EAGER = os.environ.get('CELERY_ALWAYS_EAGER', 'True').lower() == 'true'
 CELERY_TASK_EAGER_PROPAGATES = True
