@@ -297,9 +297,12 @@ def book_seats(request, theater_id):
                     created_bookings.append(booking)
 
             # Trigger async ticket generation + email (never blocks booking)
-            from movies.tasks import generate_and_email_ticket
-            booking_ids = [b.pk for b in created_bookings]
-            generate_and_email_ticket.delay(booking_ids, request.user.pk)
+            try:
+                from movies.tasks import generate_and_email_ticket
+                booking_ids = [b.pk for b in created_bookings]
+                generate_and_email_ticket.delay(booking_ids, request.user.pk)
+            except Exception as task_err:
+                pass
 
             return redirect('booking_confirmation', booking_id=created_bookings[0].booking_id)
 
@@ -349,16 +352,19 @@ def download_ticket(request, booking_id):
     )
 
     if booking.ticket_pdf:
-        file_path = booking.ticket_pdf.path
-        if os.path.exists(file_path):
-            return FileResponse(
-                open(file_path, 'rb'),
-                content_type='application/pdf',
-                as_attachment=True,
-                filename=f'BookMySeat_Ticket_{str(booking_id)[:8].upper()}.pdf',
-            )
+        try:
+            file_path = booking.ticket_pdf.path
+            if os.path.exists(file_path):
+                return FileResponse(
+                    open(file_path, 'rb'),
+                    content_type='application/pdf',
+                    as_attachment=True,
+                    filename=f'BookMySeat_Ticket_{str(booking_id)[:8].upper()}.pdf',
+                )
+        except Exception:
+            pass
 
-    # If PDF doesn't exist yet, generate it on the fly
+    # If PDF doesn't exist yet or in serverless environment, generate it on the fly
     from movies.ticket_utils import generate_ticket_pdf
 
     related_bookings = list(

@@ -58,7 +58,6 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = 'BookMySeat <noreply@bookmyseat.com>'
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 ROOT_URLCONF = 'bookmyseat.urls'
 LOGIN_URL = 'login'
@@ -83,10 +82,13 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'bookmyseat.wsgi.application'
 
+import tempfile
+
 # Database
 if os.environ.get('VERCEL'):
     db_source = BASE_DIR / 'db.sqlite3'
-    db_target = Path('/tmp') / 'db.sqlite3'
+    tmp_dir = Path(tempfile.gettempdir())
+    db_target = tmp_dir / 'db.sqlite3'
     if db_source.exists() and not db_target.exists():
         shutil.copy2(db_source, db_target)
     
@@ -96,6 +98,7 @@ if os.environ.get('VERCEL'):
             'NAME': db_target,
         }
     }
+    MEDIA_ROOT = os.path.join(tempfile.gettempdir(), 'media')
 else:
     DATABASES = {
         'default': {
@@ -103,6 +106,7 @@ else:
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -143,4 +147,4 @@ CELERY_TASK_ACKS_LATE = True
 CELERY_TASK_REJECT_ON_WORKER_LOST = True
 
 CELERY_TASK_ALWAYS_EAGER = os.environ.get('CELERY_ALWAYS_EAGER', 'True').lower() == 'true'
-CELERY_TASK_EAGER_PROPAGATES = True
+CELERY_TASK_EAGER_PROPAGATES = False

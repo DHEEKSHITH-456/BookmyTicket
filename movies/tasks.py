@@ -58,12 +58,13 @@ def generate_and_email_ticket(self, booking_ids, user_id):
 
         # 2. Save PDF to the first booking's ticket_pdf field
         filename = f'ticket_{ref_booking.booking_id}.pdf'
-        ref_booking.ticket_pdf.save(filename, ContentFile(pdf_content), save=True)
-
-        # Also link the same file path to other bookings in the group
-        for b in bookings[1:]:
-            b.ticket_pdf = ref_booking.ticket_pdf
-            b.save(update_fields=['ticket_pdf'])
+        try:
+            ref_booking.ticket_pdf.save(filename, ContentFile(pdf_content), save=True)
+            for b in bookings[1:]:
+                b.ticket_pdf = ref_booking.ticket_pdf
+                b.save(update_fields=['ticket_pdf'])
+        except Exception as storage_err:
+            logger.warning(f'Could not write ticket PDF to disk storage: {storage_err}')
 
         # 3. Send email with PDF attachment
         seat_numbers = ', '.join(b.seat.seat_number for b in bookings)
