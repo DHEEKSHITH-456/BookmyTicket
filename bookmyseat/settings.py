@@ -99,6 +99,11 @@ if os.environ.get('VERCEL'):
         }
     }
     MEDIA_ROOT = os.path.join(tempfile.gettempdir(), 'media')
+    
+    # Copy pre-existing media (like movie posters) to the writable /tmp/media directory
+    source_media = BASE_DIR / 'media'
+    if source_media.exists():
+        shutil.copytree(source_media, MEDIA_ROOT, dirs_exist_ok=True)
 else:
     DATABASES = {
         'default': {
