@@ -1,91 +1,154 @@
 {% extends "users/basic.html" %}
 
+{% block title %}Log In — BookMySeat{% endblock %}
+
 {% block content %}
 <div class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="modal-title mb-0" id="loginModalLabel">
-                        <i class="fas fa-sign-in-alt me-2"></i> Log In
-                    </h5>
+        <div class="col-lg-5 col-md-7 col-sm-10">
+
+            <div class="card shadow border-0 rounded-lg overflow-hidden">
+                <!-- Header -->
+                <div class="card-header p-4 text-center text-white" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-2" style="width: 60px; height: 60px; background: rgba(248, 68, 100, 0.2);">
+                        <i class="fas fa-user-lock fa-lg" style="color: #F84464;"></i>
+                    </div>
+                    <h3 class="font-weight-bold mb-1">Welcome Back</h3>
+                    <p class="small text-light mb-0" style="opacity: 0.85;">Sign in to your BookMySeat account</p>
                 </div>
-                <div class="card-body">
+
+                <div class="card-body p-4">
+
+                    <!-- Flash messages / Errors -->
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show border-0 rounded shadow-sm small py-2 px-3 mb-3" role="alert">
+                                <i class="fas fa-{% if message.tags == 'error' %}exclamation-circle{% else %}check-circle{% endif %} mr-2"></i>
+                                {{ message }}
+                                <button type="button" class="close" data-dismiss="alert" aria-label="Close" style="padding: 0.5rem 0.75rem;">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    {% if form.non_field_errors and not messages %}
+                        {% for error in form.non_field_errors %}
+                            <div class="alert alert-danger border-0 rounded shadow-sm small py-2 px-3 mb-3">
+                                <i class="fas fa-exclamation-circle mr-2"></i>{{ error }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
                     <form method="POST" action="{% url 'login' %}">
                         {% csrf_token %}
-                        <!-- Username Input -->
-                        <div class="mb-3">
-                            <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
+                        {% if request.GET.next %}
+                            <input type="hidden" name="next" value="{{ request.GET.next }}">
+                        {% endif %}
+
+                        <!-- Username or Email Input -->
+                        <div class="form-group mb-3">
+                            <label for="id_username" class="font-weight-bold small text-muted text-uppercase mb-1">
+                                Username or Email Address
+                            </label>
                             <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="fas fa-user"></i>
-                                </span>
-                                {{ form.username }}
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text bg-light border-right-0 text-muted">
+                                        <i class="fas fa-user"></i>
+                                    </span>
+                                </div>
+                                <input
+                                    type="text"
+                                    name="username"
+                                    id="id_username"
+                                    class="form-control border-left-0"
+                                    placeholder="Enter username or email"
+                                    value="{{ username_val|default:form.username.value|default:'' }}"
+                                    required
+                                    autofocus
+                                />
                             </div>
+                            {% if form.username.errors %}
+                                <small class="text-danger font-weight-bold d-block mt-1">{{ form.username.errors.0 }}</small>
+                            {% endif %}
                         </div>
 
                         <!-- Password Input -->
-                        <div class="mb-3">
-                            <label for="{{ form.password.id_for_label }}" class="form-label">Password</label>
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="fas fa-lock"></i>
-                                </span>
-                                {{ form.password }}
-                                <button class="btn btn-outline-secondary" type="button" id="togglePassword">
-                                    <i class="fas fa-eye" id="toggleIcon"></i>
-                                </button>
+                        <div class="form-group mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label for="id_password" class="font-weight-bold small text-muted text-uppercase mb-0">
+                                    Password
+                                </label>
+                                <a href="{% url 'password_reset' %}" class="small text-danger text-decoration-none font-weight-bold">
+                                    Forgot Password?
+                                </a>
                             </div>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text bg-light border-right-0 text-muted">
+                                        <i class="fas fa-lock"></i>
+                                    </span>
+                                </div>
+                                <input
+                                    type="password"
+                                    name="password"
+                                    id="id_password"
+                                    class="form-control border-left-0 border-right-0"
+                                    placeholder="Enter your password"
+                                    required
+                                />
+                                <div class="input-group-append">
+                                    <button class="btn btn-light border border-left-0 text-muted" type="button" id="togglePasswordBtn">
+                                        <i class="fas fa-eye" id="togglePasswordIcon"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            {% if form.password.errors %}
+                                <small class="text-danger font-weight-bold d-block mt-1">{{ form.password.errors.0 }}</small>
+                            {% endif %}
                         </div>
 
-                        <!-- Submit Button -->
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-sign-in-alt me-2"></i> Login
-                            </button>
-                        </div>
+                        <!-- Login Button -->
+                        <button type="submit" class="btn btn-danger btn-block py-2 rounded-pill font-weight-bold shadow-sm" style="background-color: #F84464; border:none; font-size: 1.05rem;">
+                            <i class="fas fa-sign-in-alt mr-2"></i> Log In
+                        </button>
                     </form>
                 </div>
-                <div class="card-footer text-center">
-                    <a href="{% url 'password_reset' %}" class="text-decoration-none">Forgot Password?</a>
-                    <hr>
-                    <p class="mb-0">Don't have an account? <a href="{% url 'register' %}" class="text-decoration-none">Sign Up</a></p>
+
+                <!-- Footer -->
+                <div class="card-footer bg-light text-center py-3">
+                    <p class="mb-0 small text-muted">
+                        Don't have an account yet? 
+                        <a href="{% url 'register' %}" class="text-danger font-weight-bold ml-1 text-decoration-none">
+                            Sign Up for Free &rarr;
+                        </a>
+                    </p>
                 </div>
             </div>
+
         </div>
     </div>
 </div>
 
-<style>
-    .card {
-        border-radius: 1rem;
-    }
-    .card-header {
-        border-top-left-radius: 1rem;
-        border-top-right-radius: 1rem;
-    }
-    .input-group-text {
-        background-color: #f8f9fa;
-    }
-    .form-control:focus {
-        box-shadow: none;
-        border-color: #80bdff;
-    }
-</style>
-
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const togglePassword = document.getElementById('togglePassword');
-        const passwordField = document.getElementById('{{ form.password.id_for_label }}');
-        const toggleIcon = document.getElementById('toggleIcon');
+        const toggleBtn = document.getElementById('togglePasswordBtn');
+        const passField = document.getElementById('id_password');
+        const passIcon = document.getElementById('togglePasswordIcon');
 
-        togglePassword.addEventListener('click', function() {
-            const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
-            passwordField.setAttribute('type', type);
-            toggleIcon.classList.toggle('fa-eye');
-            toggleIcon.classList.toggle('fa-eye-slash');
-        });
+        if (toggleBtn && passField && passIcon) {
+            toggleBtn.addEventListener('click', function() {
+                if (passField.type === 'password') {
+                    passField.type = 'text';
+                    passIcon.classList.remove('fa-eye');
+                    passIcon.classList.add('fa-eye-slash');
+                } else {
+                    passField.type = 'password';
+                    passIcon.classList.remove('fa-eye-slash');
+                    passIcon.classList.add('fa-eye');
+                }
+            });
+        }
     });
 </script>
-
 {% endblock %}
