@@ -17,7 +17,7 @@
                         ★ {{ movie.rating }}/10
                     </span>
                     <span class="badge badge-dark text-uppercase px-2 py-1" style="background: rgba(255,255,255,0.15);">
-                        {{ movie.language|default:"English" }}
+                        {% for lang in movie.languages.all %}{{ lang.name }}{% if not forloop.last %}, {% endif %}{% empty %}English{% endfor %}
                     </span>
                     {% if movie.duration %}
                     <span class="badge badge-secondary px-2 py-1">
@@ -33,7 +33,7 @@
 
                 <h1 class="font-weight-bold mb-2 display-5">{{ movie.name }}</h1>
                 <p class="text-danger font-weight-bold mb-2" style="color: #F84464 !important; font-size: 1.05rem;">
-                    <i class="fas fa-tags mr-1"></i>{{ movie.genre|default:"Action, Sci-Fi" }}
+                    <i class="fas fa-tags mr-1"></i>{% for genre in movie.genres.all %}{{ genre.name }}{% if not forloop.last %}, {% endif %}{% empty %}Action, Sci-Fi{% endfor %}
                 </p>
 
                 {% if movie.description %}
@@ -42,9 +42,10 @@
                 </p>
                 {% endif %}
 
-                {% if movie.cast %}
+                {% if movie.cast_members.exists %}
                 <p class="small text-muted mb-0">
-                    <strong class="text-white"><i class="fas fa-users mr-1"></i>Starring:</strong> {{ movie.cast }}
+                    <strong class="text-white"><i class="fas fa-users mr-1"></i>Starring:</strong> 
+                    {% for cast in movie.cast_members.all %}{{ cast.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
                 </p>
                 {% endif %}
             </div>
@@ -62,11 +63,11 @@
                         <i class="fas fa-map-marker-alt mr-1" style="color: #F84464;"></i>Filter by City:
                     </span>
                     <div class="btn-group btn-group-sm" role="group">
-                        <a href="{% url 'theater_list' movie.id %}" class="btn {% if not selected_city %}btn-danger{% else %}btn-outline-secondary{% endif %}" style="{% if not selected_city %}background-color:#F84464; border:none;{% endif %}">
+                        <a href="{% url 'theater_list' movie.id %}" class="btn {% if not selected_city %}btn-filter-active{% else %}btn-outline-secondary{% endif %}">
                             All Cities
                         </a>
                         {% for c in available_cities %}
-                        <a href="?city={{ c }}" class="btn {% if selected_city == c %}btn-danger{% else %}btn-outline-secondary{% endif %}" style="{% if selected_city == c %}background-color:#F84464; border:none;{% endif %}">
+                        <a href="?city={{ c }}" class="btn {% if selected_city == c %}btn-filter-active{% else %}btn-outline-secondary{% endif %}">
                             {{ c }}
                         </a>
                         {% endfor %}
@@ -150,7 +151,9 @@
                             <h6 class="font-weight-bold mb-1 text-truncate" title="{{ rec.name }}">
                                 <a href="{% url 'theater_list' rec.id %}" class="text-dark text-decoration-none">{{ rec.name }}</a>
                             </h6>
-                            <span class="small text-muted d-block text-truncate">{{ rec.genre|default:"Action" }}</span>
+                            <span class="small text-muted d-block text-truncate">
+                                {% for genre in rec.genres.all %}{{ genre.name }}{% if not forloop.last %}, {% endif %}{% empty %}Action{% endfor %}
+                            </span>
                             <span class="badge badge-warning text-dark font-weight-bold" style="font-size: 0.7rem;">★ {{ rec.rating }}</span>
                         </div>
                     </div>
@@ -165,6 +168,11 @@
 </div>
 
 <style>
+    .btn-filter-active {
+        background-color: #F84464 !important;
+        border-color: #F84464 !important;
+        color: #ffffff !important;
+    }
     .theater-schedule-card {
         transition: transform 0.2s ease, box-shadow 0.2s ease;
     }

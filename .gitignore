@@ -9,3 +9,4 @@ venv/
 staticfiles/
 media/tickets/
 *.log
+.vscode/
