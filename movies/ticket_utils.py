@@ -110,10 +110,12 @@ def generate_ticket_pdf(bookings, user):
 
     # ─── MOVIE DETAILS ───
     elements.append(Paragraph('MOVIE DETAILS', style_section))
+    genres_str = ', '.join(g.name for g in movie.genres.all()) if movie.genres.exists() else 'N/A'
+    languages_str = ', '.join(l.name for l in movie.languages.all()) if movie.languages.exists() else 'N/A'
     movie_data = [
         [Paragraph('Movie', style_label), Paragraph(movie.name, style_value)],
-        [Paragraph('Genre', style_label), Paragraph(movie.genre or 'N/A', style_value)],
-        [Paragraph('Language', style_label), Paragraph(movie.language or 'N/A', style_value)],
+        [Paragraph('Genre', style_label), Paragraph(genres_str, style_value)],
+        [Paragraph('Language', style_label), Paragraph(languages_str, style_value)],
         [Paragraph('Duration', style_label), Paragraph(f'{movie.duration} minutes', style_value)],
         [Paragraph('Rating', style_label), Paragraph(f'★ {movie.rating}/10', style_value)],
     ]
