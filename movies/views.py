@@ -3,11 +3,12 @@ from datetime import date
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError, transaction
-from django.db.models import Q, Min, Max, Count
+from django.db.models import Q, Min, Max, Count, Avg
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.http import FileResponse, Http404
 from django.conf import settings
-from .models import Movie, Theater, Seat, Booking
+from django.utils import timezone
+from .models import Movie, Theater, Seat, Booking, Review
 
 
 # ════════════════════════════════════════════════
@@ -31,22 +32,21 @@ def get_recommended_movies(request, current_movie_id=None):
             favorite_languages = set()
             for b in user_bookings:
                 if b.movie:
-                    if b.movie.genre:
-                        for g in b.movie.genre.split(','):
-                            favorite_genres.add(g.strip())
-                    if b.movie.language:
-                        favorite_languages.add(b.movie.language)
+                    for g in b.movie.genres.all():
+                        favorite_genres.add(g.name)
+                    for l in b.movie.languages.all():
+                        favorite_languages.add(l.name)
 
             genre_query = Q()
             for g in favorite_genres:
-                genre_query |= Q(genre__icontains=g)
+                genre_query |= Q(genres__name__icontains=g)
 
             rec_qs = Movie.objects.exclude(id__in=booked_movie_ids)
             if current_movie_id:
                 rec_qs = rec_qs.exclude(id=current_movie_id)
 
             history_recs = rec_qs.filter(
-                genre_query | Q(language__in=favorite_languages)
+                genre_query | Q(languages__name__in=favorite_languages)
             ).order_by('-rating', '-popularity')[:6]
             if history_recs.exists():
                 for m in history_recs:
@@ -59,13 +59,12 @@ def get_recommended_movies(request, current_movie_id=None):
         viewed_movies = Movie.objects.filter(id__in=recently_viewed_ids)
         viewed_genres = set()
         for vm in viewed_movies:
-            if vm.genre:
-                for g in vm.genre.split(','):
-                    viewed_genres.add(g.strip())
+            for g in vm.genres.all():
+                viewed_genres.add(g.name)
 
         genre_q = Q()
         for g in viewed_genres:
-            genre_q |= Q(genre__icontains=g)
+            genre_q |= Q(genres__name__icontains=g)
 
         rec_qs = Movie.objects.exclude(id__in=recently_viewed_ids)
         if current_movie_id:
@@ -122,14 +121,14 @@ def movie_list(request):
     if search_query:
         movies = movies.filter(
             Q(name__icontains=search_query) |
-            Q(cast__icontains=search_query) |
+            Q(cast_members__name__icontains=search_query) |
             Q(description__icontains=search_query) |
-            Q(genre__icontains=search_query)
+            Q(genres__name__icontains=search_query)
         )
     if selected_genre and selected_genre != 'All':
-        movies = movies.filter(genre__icontains=selected_genre)
+        movies = movies.filter(genres__name__icontains=selected_genre)
     if selected_language and selected_language != 'All':
-        movies = movies.filter(language__iexact=selected_language)
+        movies = movies.filter(languages__name__iexact=selected_language)
     if selected_city and selected_city != 'All':
         movies = movies.filter(theaters__city__iexact=selected_city)
     if selected_theater and selected_theater != 'All':
@@ -186,12 +185,9 @@ def movie_list(request):
     except EmptyPage:
         paginated_movies = paginator.page(paginator.num_pages)
 
-    all_genres = sorted(list(set(
-        g.strip()
-        for sublist in Movie.objects.exclude(genre='').values_list('genre', flat=True)
-        for g in sublist.split(',')
-    )))
-    all_languages = sorted(list(set(Movie.objects.exclude(language='').values_list('language', flat=True))))
+    from .models import Genre, Language
+    all_genres = list(Genre.objects.values_list('name', flat=True).order_by('name'))
+    all_languages = list(Language.objects.values_list('name', flat=True).order_by('name'))
     all_cities = sorted(list(set(Theater.objects.exclude(city='').values_list('city', flat=True))))
     all_theaters = sorted(list(set(Theater.objects.exclude(name='').values_list('name', flat=True))))[:15]
 
@@ -381,3 +377,93 @@ def download_ticket(request, booking_id):
         as_attachment=True,
         filename=f'BookMySeat_Ticket_{str(booking_id)[:8].upper()}.pdf',
     )
+
+
+# ════════════════════════════════════════════════
+#  TASK 3: Movie Details, Trailer, Reviews
+# ════════════════════════════════════════════════
+
+def update_movie_rating(movie):
+    """Recalculate and update the movie rating based on all reviews."""
+    reviews = movie.reviews.all()
+    if reviews.exists():
+        avg_rating = reviews.aggregate(Avg('rating'))['rating__avg']
+        movie.rating = round(avg_rating, 1)
+    else:
+        movie.rating = 8.0 # Default
+    movie.save()
+
+def movie_detail(request, movie_id):
+    """
+    Display movie details: Trailer, Gallery, Reviews, Recommendations.
+    Only allows authenticated users who have already watched to submit a review.
+    """
+    movie = get_object_or_404(Movie, id=movie_id)
+    gallery = movie.gallery.all()
+    reviews = movie.reviews.all().order_by('-created_at')
+    
+    can_review = False
+    user_review = None
+    
+    if request.user.is_authenticated:
+        # Check if they have a past booking (time < now)
+        past_bookings = Booking.objects.filter(
+            user=request.user,
+            movie=movie,
+            theater__time__lt=timezone.now()
+        )
+        if past_bookings.exists():
+            can_review = True
+            
+        # Get their existing review if any
+        user_review = reviews.filter(user=request.user).first()
+        
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'submit_review' and can_review:
+            rating = int(request.POST.get('rating', 10))
+            text = request.POST.get('review_text', '').strip()
+            
+            if user_review:
+                user_review.rating = rating
+                user_review.review_text = text
+                user_review.save()
+            else:
+                Review.objects.create(
+                    movie=movie,
+                    user=request.user,
+                    rating=rating,
+                    review_text=text,
+                    verified_viewer=True
+                )
+            update_movie_rating(movie)
+            return redirect('movie_detail', movie_id=movie.id)
+            
+        elif action == 'report_review' and request.user.is_authenticated:
+            review_id = request.POST.get('review_id')
+            try:
+                rep_rev = Review.objects.get(id=review_id, movie=movie)
+                rep_rev.is_reported = True
+                rep_rev.save()
+            except Review.DoesNotExist:
+                pass
+            return redirect('movie_detail', movie_id=movie.id)
+
+    # Similar movies based on shared genres
+    similar_movies = Movie.objects.filter(genres__in=movie.genres.all()).exclude(id=movie.id).distinct().order_by('-popularity')[:4]
+    
+    # Fallback to trending if no similar movies found
+    if not similar_movies.exists():
+        similar_movies = Movie.objects.exclude(id=movie.id).order_by('-rating', '-popularity')[:4]
+
+    context = {
+        'movie': movie,
+        'gallery': gallery,
+        'reviews': reviews,
+        'can_review': can_review,
+        'user_review': user_review,
+        'similar_movies': similar_movies,
+    }
+    return render(request, 'movies/movie_detail.html', context)
+

@@ -1,13 +1,43 @@
 from django.contrib import admin
-from .models import Movie, Theater, Seat, Booking
+from .models import Movie, Theater, Seat, Booking, Genre, Language, CastMember, MovieImage, Review
 
+class MovieImageInline(admin.TabularInline):
+    model = MovieImage
+    extra = 1
 
 @admin.register(Movie)
 class MovieAdmin(admin.ModelAdmin):
-    list_display = ['name', 'rating', 'genre', 'language', 'release_date', 'duration', 'popularity']
-    list_filter = ['genre', 'language', 'release_date']
-    search_fields = ['name', 'cast', 'genre', 'description']
+    list_display = ['name', 'rating', 'get_genres', 'get_languages', 'release_date', 'duration', 'popularity']
+    list_filter = ['genres', 'languages', 'release_date']
+    search_fields = ['name', 'cast_members__name', 'genres__name', 'description']
+    inlines = [MovieImageInline]
+    
+    def get_genres(self, obj):
+        return ", ".join([g.name for g in obj.genres.all()])
+    get_genres.short_description = 'Genres'
 
+    def get_languages(self, obj):
+        return ", ".join([l.name for l in obj.languages.all()])
+    get_languages.short_description = 'Languages'
+
+@admin.register(Genre)
+class GenreAdmin(admin.ModelAdmin):
+    list_display = ['name']
+
+@admin.register(Language)
+class LanguageAdmin(admin.ModelAdmin):
+    list_display = ['name']
+
+@admin.register(CastMember)
+class CastMemberAdmin(admin.ModelAdmin):
+    list_display = ['name']
+
+@admin.register(Review)
+class ReviewAdmin(admin.ModelAdmin):
+    list_display = ['movie', 'user', 'rating', 'verified_viewer', 'is_reported', 'created_at']
+    list_filter = ['verified_viewer', 'is_reported', 'rating']
+    search_fields = ['movie__name', 'user__username', 'review_text']
+    
 
 @admin.register(Theater)
 class TheaterAdmin(admin.ModelAdmin):

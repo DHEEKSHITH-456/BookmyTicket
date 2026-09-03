@@ -1,0 +1,224 @@
+{% extends "users/basic.html" %}
+{% load static %}
+
+{% block title %}{{ movie.name }} - Reviews, Trailer & Details | BookMySeat{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-lg-5 py-4">
+
+    <!-- ========== TOP ROW: POSTER & DETAILS ========== -->
+    <div class="row mb-5">
+        <!-- Left Col: Main Poster -->
+        <div class="col-md-3 mb-4 mb-md-0">
+            <div class="card border-0 shadow-lg rounded-lg overflow-hidden position-relative bg-dark">
+                <img src="{{ movie.image.url }}" alt="{{ movie.name }}" class="w-100" style="object-fit: cover;">
+                <div class="position-absolute text-white px-3 py-1 text-center font-weight-bold" style="bottom: 0; width: 100%; background: rgba(0,0,0,0.8);">
+                    {% if movie.release_date > today %}Upcoming{% else %}In Cinemas{% endif %}
+                </div>
+            </div>
+            <a href="{% url 'theater_list' movie.id %}" class="btn btn-block text-white mt-3 py-2 font-weight-bold shadow-sm" style="background-color: #F84464; border-radius: 8px; font-size: 1.1rem;">
+                Book Tickets
+            </a>
+        </div>
+
+        <!-- Right Col: Movie Info -->
+        <div class="col-md-9">
+            <h1 class="font-weight-bold mb-2" style="color: #1a1a2e; font-size: 2.5rem;">{{ movie.name }}</h1>
+            
+            <div class="d-flex flex-wrap align-items-center mb-3 text-muted">
+                <span class="badge badge-warning px-2 py-1 mr-3" style="background:#f5c518; color:#000; font-size:1.1rem;">
+                    ★ {{ movie.rating }}/10
+                </span>
+                
+                <span class="badge badge-light border px-2 py-1 mr-3 text-uppercase shadow-sm">
+                    {{ movie.age_certification }}
+                </span>
+                
+                {% if movie.duration %}
+                <span class="mr-3"><i class="far fa-clock mr-1"></i> {{ movie.duration }} min</span>
+                {% endif %}
+                
+                {% if movie.release_date %}
+                <span class="mr-3"><i class="far fa-calendar-alt mr-1"></i> {{ movie.release_date|date:"d M Y" }}</span>
+                {% endif %}
+            </div>
+
+            <!-- Tags (Genres & Languages) -->
+            <div class="mb-4">
+                {% for genre in movie.genres.all %}
+                    <span class="badge badge-pill badge-secondary mr-1 px-3 py-2" style="background: #e9ecef; color:#1a1a2e;">{{ genre.name }}</span>
+                {% endfor %}
+                <span class="mx-2 text-muted">|</span>
+                {% for lang in movie.languages.all %}
+                    <span class="badge badge-pill badge-danger mr-1 px-3 py-2" style="background: rgba(248, 68, 100, 0.1); color:#F84464;">{{ lang.name }}</span>
+                {% endfor %}
+            </div>
+
+            <!-- About / Description -->
+            <h5 class="font-weight-bold mb-2">About the Movie</h5>
+            <p class="text-muted" style="line-height: 1.6; font-size: 1.05rem;">
+                {{ movie.description|default:"No description available." }}
+            </p>
+            
+            <!-- Cast -->
+            <div class="mt-4">
+                <h5 class="font-weight-bold mb-2">Cast</h5>
+                <p class="text-muted">
+                    {% for cast in movie.cast_members.all %}
+                        <span class="mr-3"><i class="fas fa-user-circle mr-1"></i> {{ cast.name }}</span>
+                    {% empty %}
+                        Ensemble Cast
+                    {% endfor %}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== MIDDLE ROW: TRAILER & GALLERY ========== -->
+    {% if movie.trailer_url or gallery %}
+    <div class="row mb-5">
+        <div class="col-12">
+            <h4 class="font-weight-bold mb-3 border-bottom pb-2">Media & Gallery</h4>
+        </div>
+        
+        {% if movie.trailer_url %}
+        <div class="col-lg-7 mb-4">
+            <div class="embed-responsive embed-responsive-16by9 rounded-lg shadow-sm">
+                <!-- Assuming YouTube format, convert standard link to embed link if needed -->
+                <!-- A safe way in Django templates is to just assume the admin entered the embed URL, e.g., https://www.youtube.com/embed/xyz -->
+                <iframe class="embed-responsive-item" src="{{ movie.trailer_url }}" allowfullscreen></iframe>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if gallery %}
+        <div class="col-lg-5">
+            <div class="row g-2">
+                {% for img in gallery %}
+                <div class="col-6 mb-3">
+                    <img src="{{ img.image.url }}" class="w-100 rounded-lg shadow-sm" style="height: 150px; object-fit: cover;" alt="Gallery image">
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- ========== REVIEWS SECTION ========== -->
+    <div class="row mb-5">
+        <div class="col-md-8">
+            <h4 class="font-weight-bold mb-4 border-bottom pb-2">Ratings & Reviews</h4>
+
+            <!-- Review Submission Form -->
+            {% if request.user.is_authenticated %}
+                {% if can_review %}
+                    <div class="card border-0 shadow-sm rounded-lg mb-4 bg-light">
+                        <div class="card-body">
+                            <h6 class="font-weight-bold mb-3 text-success">
+                                <i class="fas fa-check-circle mr-1"></i> Verified Viewer - Share Your Experience
+                            </h6>
+                            <form method="POST">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="submit_review">
+                                <div class="form-group">
+                                    <label>Rate out of 10</label>
+                                    <input type="number" name="rating" min="1" max="10" class="form-control w-25" required value="{{ user_review.rating|default:10 }}">
+                                </div>
+                                <div class="form-group">
+                                    <textarea name="review_text" class="form-control" rows="3" placeholder="What did you think of the movie?" required>{{ user_review.review_text|default:'' }}</textarea>
+                                </div>
+                                <button type="submit" class="btn text-white font-weight-bold px-4" style="background-color: #F84464; border-radius: 8px;">
+                                    {% if user_review %}Update Review{% else %}Post Review{% endif %}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="alert alert-secondary text-center rounded-lg">
+                        <i class="fas fa-ticket-alt mr-2 text-muted"></i> You must book and watch this movie before writing a review.
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="alert alert-secondary text-center rounded-lg">
+                    <a href="{% url 'login' %}" class="text-danger font-weight-bold">Log in</a> to write a review.
+                </div>
+            {% endif %}
+
+            <!-- Review List -->
+            <div>
+                {% for review in reviews %}
+                <div class="card border-0 shadow-sm rounded-lg mb-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <span class="font-weight-bold text-dark" style="font-size: 1.1rem;">{{ review.user.username }}</span>
+                                {% if review.verified_viewer %}
+                                    <span class="badge badge-success ml-2" title="Verified Ticket Booking"><i class="fas fa-check-circle"></i> Verified</span>
+                                {% endif %}
+                                <span class="text-muted small ml-2">{{ review.created_at|date:"d M Y" }}</span>
+                            </div>
+                            <span class="badge badge-warning px-2 py-1" style="background:#f5c518; color:#000; font-size:1rem;">★ {{ review.rating }}/10</span>
+                        </div>
+                        
+                        <p class="text-muted mb-0" style="font-size: 0.95rem;">{{ review.review_text }}</p>
+                        
+                        {% if request.user.is_authenticated and review.user != request.user and not review.is_reported %}
+                        <div class="text-right mt-2">
+                            <form method="POST" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="report_review">
+                                <input type="hidden" name="review_id" value="{{ review.id }}">
+                                <button type="submit" class="btn btn-link btn-sm text-danger p-0 shadow-none"><i class="fas fa-flag mr-1"></i> Report</button>
+                            </form>
+                        </div>
+                        {% elif review.is_reported %}
+                        <div class="text-right mt-2 text-danger small"><i class="fas fa-flag mr-1"></i> Reported for review</div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted">No reviews yet. Be the first to review!</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== RECOMMENDATIONS SECTION ========== -->
+    <div class="row">
+        <div class="col-12">
+            <h4 class="font-weight-bold mb-4">You Might Also Like</h4>
+            <div class="row row-cols-2 row-cols-md-4 g-3">
+                {% for sim in similar_movies %}
+                <div class="col mb-3">
+                    <a href="{% url 'movie_detail' sim.id %}" class="text-decoration-none">
+                        <div class="card h-100 border-0 shadow-sm rounded-lg overflow-hidden sim-card">
+                            <div class="position-relative">
+                                <img src="{{ sim.image.url }}" class="card-img-top" alt="{{ sim.name }}" style="height: 200px; object-fit: cover;">
+                                <span class="badge badge-warning position-absolute" style="top: 8px; left: 8px; font-weight: 700; background:#f5c518; color:#000;">
+                                    ★ {{ sim.rating }}
+                                </span>
+                            </div>
+                            <div class="card-body p-2 text-center">
+                                <h6 class="card-title font-weight-bold mb-0 text-truncate text-dark">{{ sim.name }}</h6>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<style>
+    .sim-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .sim-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.15) !important;
+    }
+</style>
+{% endblock %}

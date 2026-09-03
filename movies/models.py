@@ -2,21 +2,68 @@ import uuid
 from django.db import models
 from django.contrib.auth.models import User
 
+class Genre(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    def __str__(self): return self.name
+
+class Language(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    def __str__(self): return self.name
+
+class CastMember(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    def __str__(self): return self.name
 
 class Movie(models.Model):
     name = models.CharField(max_length=255)
     image = models.ImageField(upload_to="movies/")
+    trailer_url = models.URLField(blank=True, null=True, help_text="YouTube embed URL")
+    
+    AGE_CHOICES = (
+        ('U', 'U (Unrestricted Public Exhibition)'),
+        ('U/A', 'U/A (Parental Guidance for children below 12)'),
+        ('A', 'A (Adults Only)'),
+        ('S', 'S (Specialized Audience)'),
+    )
+    age_certification = models.CharField(max_length=5, choices=AGE_CHOICES, default='U/A')
+    
     rating = models.DecimalField(max_digits=3, decimal_places=1, default=8.0)
-    genre = models.CharField(max_length=100, default='Action', help_text="Comma-separated genres, e.g. Action, Sci-Fi")
-    language = models.CharField(max_length=50, default='English')
+    
+    # New M2M relationships
+    genres = models.ManyToManyField(Genre, blank=True)
+    languages = models.ManyToManyField(Language, blank=True)
+    cast_members = models.ManyToManyField(CastMember, blank=True)
+    
     release_date = models.DateField(null=True, blank=True)
     duration = models.IntegerField(default=120, help_text="Duration in minutes")
     popularity = models.IntegerField(default=100, help_text="Popularity / Votes count")
-    cast = models.TextField()
     description = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return self.name
+
+class MovieImage(models.Model):
+    movie = models.ForeignKey(Movie, on_delete=models.CASCADE, related_name='gallery')
+    image = models.ImageField(upload_to="movies/gallery/")
+    
+    def __str__(self):
+        return f"Image for {self.movie.name}"
+
+class Review(models.Model):
+    movie = models.ForeignKey(Movie, on_delete=models.CASCADE, related_name='reviews')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reviews')
+    rating = models.IntegerField(default=10, help_text="Rating 1-10")
+    review_text = models.TextField()
+    verified_viewer = models.BooleanField(default=False)
+    is_reported = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ('movie', 'user')
+        
+    def __str__(self):
+        return f"Review by {self.user.username} for {self.movie.name}"
 
 
 class Theater(models.Model):

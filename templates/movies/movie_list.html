@@ -80,8 +80,8 @@
                                 {{ rec.rec_badge|default:"Top Choice" }}
                             </span>
                         </div>
-                        <a href="{% url 'theater_list' rec.id %}" class="btn btn-sm btn-outline-danger btn-block rounded-pill" style="font-size:0.75rem; font-weight:600;">
-                            Book Now
+                        <a href="{% url 'movie_detail' rec.id %}" class="btn btn-sm btn-outline-danger btn-block rounded-pill" style="font-size:0.75rem; font-weight:600;">
+                            View Details
                         </a>
                     </div>
                 </div>
@@ -388,8 +388,8 @@
                                         ₹{{ movie.min_ticket_price|default:"200" }}
                                     </div>
                                 </div>
-                                <a href="{% url 'theater_list' movie.id %}" class="btn btn-danger btn-sm rounded-pill px-3 shadow-sm font-weight-bold" style="background-color: #F84464; border:none;">
-                                    Book Tickets <i class="fas fa-chevron-right ml-1 small"></i>
+                                <a href="{% url 'movie_detail' movie.id %}" class="btn btn-danger btn-sm rounded-pill px-3 shadow-sm font-weight-bold" style="background-color: #F84464; border:none;">
+                                    View Details <i class="fas fa-chevron-right ml-1 small"></i>
                                 </a>
                             </div>
                         </div>
