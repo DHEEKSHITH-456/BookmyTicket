@@ -8,6 +8,7 @@ verification at the theater entrance.
 
 import io
 import qrcode
+from qrcode.image.pil import PilImage
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm, cm
@@ -25,6 +26,7 @@ def generate_qr_code(data, size=35 * mm):
         error_correction=qrcode.constants.ERROR_CORRECT_M,
         box_size=10,
         border=2,
+        image_factory=PilImage,
     )
     qr.add_data(data)
     qr.make(fit=True)
