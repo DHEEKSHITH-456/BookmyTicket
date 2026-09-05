@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Movie, Theater, Seat, Booking, Genre, Language, CastMember, MovieImage, Review
+from .models import Movie, Theater, Seat, Booking, Genre, Language, CastMember, MovieImage, Review, PaymentTransaction
 
 class MovieImageInline(admin.TabularInline):
     model = MovieImage
@@ -52,9 +52,18 @@ class SeatAdmin(admin.ModelAdmin):
     list_filter = ['is_booked']
 
 
+@admin.register(PaymentTransaction)
+class PaymentTransactionAdmin(admin.ModelAdmin):
+    list_display = ['transaction_id', 'order_id', 'payment_id', 'user', 'movie', 'amount', 'status', 'created_at']
+    list_filter = ['status', 'currency', 'created_at']
+    search_fields = ['transaction_id', 'order_id', 'payment_id', 'user__username', 'movie__name']
+    readonly_fields = ['transaction_id', 'created_at', 'updated_at']
+
+
 @admin.register(Booking)
 class BookingAdmin(admin.ModelAdmin):
     list_display = ['booking_id', 'user', 'movie', 'theater', 'seat', 'payment_reference', 'email_sent', 'booked_at']
     list_filter = ['email_sent', 'booked_at']
     search_fields = ['booking_id', 'payment_reference', 'user__username']
     readonly_fields = ['booking_id', 'payment_reference']
+

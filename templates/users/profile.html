@@ -69,71 +69,173 @@
         </div>
       </div>
       
-      <!-- Bookings History Card -->
+      <!-- Tabs: Bookings & Payment Transactions -->
       <div class="card shadow-sm border-0 rounded-lg overflow-hidden">
-        <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between">
-          <h5 class="mb-0 font-weight-bold" style="color: #1a1a2e;">
-            <i class="fas fa-ticket-alt mr-2 text-danger"></i>Your Booking History
-          </h5>
-          <a href="{% url 'movie_list' %}" class="small text-danger font-weight-bold text-decoration-none">
-            + Book More
-          </a>
+        <div class="card-header bg-white border-bottom p-0">
+          <ul class="nav nav-tabs border-0 px-3 pt-2" id="profileTabs" role="tablist">
+            <li class="nav-item">
+              <a class="nav-link active font-weight-bold" id="bookings-tab" data-toggle="tab" href="#bookingsTab" role="tab" aria-controls="bookingsTab" aria-selected="true" style="color: #1a1a2e;">
+                <i class="fas fa-ticket-alt mr-2 text-danger"></i>Confirmed Bookings ({{ bookings.count }})
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link font-weight-bold" id="payments-tab" data-toggle="tab" href="#paymentsTab" role="tab" aria-controls="paymentsTab" aria-selected="false" style="color: #1a1a2e;">
+                <i class="fas fa-credit-card mr-2 text-primary"></i>Payment Transactions ({{ transactions.count }})
+              </a>
+            </li>
+          </ul>
         </div>
+
         <div class="card-body p-4">
-          {% if bookings %}
-            <div class="row">
-              {% for booking in bookings %}
-                <div class="col-12 mb-3">
-                  <div class="card border rounded-lg shadow-sm overflow-hidden booking-history-card">
-                    <div class="card-body p-3">
-                      <div class="row align-items-center">
-                        <div class="col-md-7 col-sm-12 mb-2 mb-md-0">
-                          <div class="d-flex align-items-center">
-                            {% if booking.movie.image %}
-                            <img src="{{ booking.movie.image.url }}" class="rounded mr-3 shadow-sm" alt="{{ booking.movie.name }}" style="width: 60px; height: 80px; object-fit: cover;">
-                            {% endif %}
-                            <div>
-                              <h5 class="font-weight-bold mb-1 text-dark">{{ booking.movie.name }}</h5>
-                              <p class="small text-muted mb-1">
-                                <i class="fas fa-film mr-1 text-danger"></i>{{ booking.theater.name }} ({{ booking.theater.city }})
-                              </p>
-                              <p class="small text-muted mb-0">
-                                <i class="fas fa-chair mr-1 text-primary"></i>Seat: <strong class="text-dark">{{ booking.seat.seat_number }}</strong>
-                                &bull; <i class="far fa-clock mr-1 text-muted"></i>{{ booking.theater.time|date:"D, d M Y at g:i A" }}
-                              </p>
+          <div class="tab-content" id="profileTabsContent">
+
+            <!-- TAB 1: CONFIRMED BOOKINGS -->
+            <div class="tab-pane fade show active" id="bookingsTab" role="tabpanel" aria-labelledby="bookings-tab">
+              {% if bookings %}
+                <div class="row">
+                  {% for booking in bookings %}
+                    <div class="col-12 mb-3">
+                      <div class="card border rounded-lg shadow-sm overflow-hidden booking-history-card">
+                        <div class="card-body p-3">
+                          <div class="row align-items-center">
+                            <div class="col-md-7 col-sm-12 mb-2 mb-md-0">
+                              <div class="d-flex align-items-center">
+                                {% if booking.movie.image %}
+                                <img src="{{ booking.movie.image.url }}" class="rounded mr-3 shadow-sm" alt="{{ booking.movie.name }}" style="width: 60px; height: 80px; object-fit: cover;">
+                                {% endif %}
+                                <div>
+                                  <h5 class="font-weight-bold mb-1 text-dark">{{ booking.movie.name }}</h5>
+                                  <p class="small text-muted mb-1">
+                                    <i class="fas fa-film mr-1 text-danger"></i>{{ booking.theater.name }} ({{ booking.theater.city }})
+                                  </p>
+                                  <p class="small text-muted mb-0">
+                                    <i class="fas fa-chair mr-1 text-primary"></i>Seat: <strong class="text-dark">{{ booking.seat.seat_number }}</strong>
+                                    &bull; <i class="far fa-clock mr-1 text-muted"></i>{{ booking.theater.time|date:"D, d M Y at g:i A" }}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                            <div class="col-md-5 col-sm-12 text-md-right mt-2 mt-md-0">
+                              <div class="mb-2">
+                                <span class="badge badge-light border text-muted small mr-1">
+                                  ID: #{{ booking.booking_id|stringformat:"s"|slice:":8"|upper }}
+                                </span>
+                                <span class="badge badge-success small">
+                                  <i class="fas fa-check-circle mr-1"></i>Confirmed
+                                </span>
+                              </div>
+                              <!-- Download PDF Ticket Action -->
+                              <a href="{% url 'download_ticket' booking.booking_id %}" class="btn btn-sm btn-outline-danger rounded-pill px-3 font-weight-bold" style="border-color: #F84464; color: #F84464;">
+                                <i class="fas fa-download mr-1"></i> Download Ticket (PDF)
+                              </a>
                             </div>
                           </div>
                         </div>
-                        <div class="col-md-5 col-sm-12 text-md-right mt-2 mt-md-0">
-                          <div class="mb-2">
-                            <span class="badge badge-light border text-muted small mr-1">
-                              ID: #{{ booking.booking_id|stringformat:"s"|slice:":8"|upper }}
-                            </span>
-                            <span class="badge badge-success small">
-                              <i class="fas fa-check-circle mr-1"></i>Confirmed
-                            </span>
-                          </div>
-                          <!-- Download PDF Ticket Action -->
-                          <a href="{% url 'download_ticket' booking.booking_id %}" class="btn btn-sm btn-outline-danger rounded-pill px-3 font-weight-bold" style="border-color: #F84464; color: #F84464;">
-                            <i class="fas fa-download mr-1"></i> Download Ticket (PDF)
-                          </a>
-                        </div>
                       </div>
                     </div>
-                  </div>
+                  {% endfor %}
                 </div>
-              {% endfor %}
+              {% else %}
+                <div class="text-center py-5">
+                  <i class="fas fa-ticket-alt fa-4x text-muted mb-3"></i>
+                  <h5 class="font-weight-bold text-dark">No Confirmed Bookings Yet</h5>
+                  <p class="text-muted mb-4">You haven't booked any movie tickets yet. Explore movies and reserve your seats!</p>
+                  <a href="{% url 'movie_list' %}" class="btn btn-danger rounded-pill px-4 font-weight-bold" style="background-color: #F84464; border:none;">
+                    <i class="fas fa-film mr-1"></i> Explore Movies
+                  </a>
+                </div>
+              {% endif %}
             </div>
-          {% else %}
-            <div class="text-center py-5">
-              <i class="fas fa-ticket-alt fa-4x text-muted mb-3"></i>
-              <h5 class="font-weight-bold text-dark">No Bookings Yet</h5>
-              <p class="text-muted mb-4">You haven't booked any movie tickets yet. Explore movies and reserve your seats!</p>
-              <a href="{% url 'movie_list' %}" class="btn btn-danger rounded-pill px-4 font-weight-bold" style="background-color: #F84464; border:none;">
-                <i class="fas fa-film mr-1"></i> Explore Movies
-              </a>
+
+            <!-- TAB 2: PAYMENT TRANSACTIONS -->
+            <div class="tab-pane fade" id="paymentsTab" role="tabpanel" aria-labelledby="payments-tab">
+              {% if transactions %}
+                <div class="table-responsive">
+                  <table class="table table-hover align-middle border mb-0 rounded-lg">
+                    <thead class="bg-light">
+                      <tr class="small text-uppercase text-muted font-weight-bold">
+                        <th>Transaction Ref</th>
+                        <th>Movie &amp; Theater</th>
+                        <th>Seats</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Date &amp; Time</th>
+                        <th class="text-right">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for txn in transactions %}
+                      <tr>
+                        <td>
+                          <span class="font-weight-bold text-dark d-block">
+                            #{{ txn.transaction_id|stringformat:"s"|slice:":8"|upper }}
+                          </span>
+                          <span class="small text-muted font-monospace d-block" style="font-size: 0.75rem;">
+                            {{ txn.order_id }}
+                          </span>
+                        </td>
+                        <td>
+                          <strong class="text-dark">{{ txn.movie.name }}</strong>
+                          <span class="small text-muted d-block">{{ txn.theater.name }}</span>
+                        </td>
+                        <td>
+                          <span class="badge badge-light border">
+                            {% for s in txn.seats.all %}
+                              {{ s.seat_number }}{% if not forloop.last %}, {% endif %}
+                            {% empty %}
+                              -
+                            {% endfor %}
+                          </span>
+                        </td>
+                        <td>
+                          <strong class="text-dark">₹{{ txn.amount }}</strong>
+                        </td>
+                        <td>
+                          {% if txn.status == 'SUCCESS' %}
+                            <span class="badge badge-success px-2 py-1"><i class="fas fa-check-circle mr-1"></i>Success</span>
+                          {% elif txn.status == 'PENDING' %}
+                            <span class="badge badge-warning px-2 py-1"><i class="fas fa-clock mr-1"></i>Pending</span>
+                          {% elif txn.status == 'FAILED' %}
+                            <span class="badge badge-danger px-2 py-1"><i class="fas fa-times-circle mr-1"></i>Failed</span>
+                          {% elif txn.status == 'CANCELLED' %}
+                            <span class="badge badge-secondary px-2 py-1"><i class="fas fa-ban mr-1"></i>Cancelled</span>
+                          {% else %}
+                            <span class="badge badge-info px-2 py-1">{{ txn.status }}</span>
+                          {% endif %}
+                        </td>
+                        <td class="small text-muted">
+                          {{ txn.created_at|date:"d M Y" }}<br>{{ txn.created_at|date:"g:i A" }}
+                        </td>
+                        <td class="text-right">
+                          {% if txn.status == 'SUCCESS' and txn.bookings.first %}
+                            <a href="{% url 'download_ticket' txn.bookings.first.booking_id %}" class="btn btn-sm btn-outline-danger rounded-pill px-3 font-weight-bold" style="border-color: #F84464; color: #F84464;">
+                              <i class="fas fa-download mr-1"></i>Ticket
+                            </a>
+                          {% elif txn.status == 'FAILED' or txn.status == 'CANCELLED' %}
+                            <a href="{% url 'book_seats' txn.theater.id %}" class="btn btn-sm btn-outline-primary rounded-pill px-3 font-weight-bold">
+                              <i class="fas fa-redo-alt mr-1"></i>Retry
+                            </a>
+                          {% elif txn.status == 'PENDING' %}
+                            <a href="{% url 'payment_checkout' txn.order_id %}" class="btn btn-sm btn-danger rounded-pill px-3 font-weight-bold" style="background-color: #F84464; border:none;">
+                              Pay Now
+                            </a>
+                          {% endif %}
+                        </td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              {% else %}
+                <div class="text-center py-5">
+                  <i class="fas fa-credit-card fa-4x text-muted mb-3"></i>
+                  <h5 class="font-weight-bold text-dark">No Payment Transactions Recorded</h5>
+                  <p class="text-muted mb-0">Every transaction attempt (successful, failed, or cancelled) will be permanently logged here.</p>
+                </div>
+              {% endif %}
             </div>
-          {% endif %}
+
+          </div>
         </div>
       </div>
     </div>

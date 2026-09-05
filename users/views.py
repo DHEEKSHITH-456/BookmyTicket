@@ -5,7 +5,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from movies.models import Movie, Booking
+from movies.models import Movie, Booking, PaymentTransaction
 from movies.views import get_recommended_movies
 
 
@@ -80,8 +80,12 @@ def login_view(request):
 @login_required
 def profile(request):
     bookings = Booking.objects.filter(user=request.user).select_related(
-        'movie', 'theater', 'seat'
+        'movie', 'theater', 'seat', 'payment'
     ).order_by('-booked_at')
+    transactions = PaymentTransaction.objects.filter(user=request.user).select_related(
+        'movie', 'theater'
+    ).prefetch_related('seats').order_by('-created_at')
+
     if request.method == 'POST':
         u_form = UserUpdateForm(request.POST, instance=request.user)
         if u_form.is_valid():
@@ -94,6 +98,7 @@ def profile(request):
     return render(request, 'users/profile.html', {
         'u_form': u_form,
         'bookings': bookings,
+        'transactions': transactions,
     })
 
 

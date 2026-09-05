@@ -87,13 +87,52 @@ class Seat(models.Model):
         return f'{self.seat_number} in {self.theater.name}'
 
 
+class PaymentTransaction(models.Model):
+    STATUS_PENDING = 'PENDING'
+    STATUS_SUCCESS = 'SUCCESS'
+    STATUS_FAILED = 'FAILED'
+    STATUS_CANCELLED = 'CANCELLED'
+    STATUS_REFUNDED = 'REFUNDED'
+
+    STATUS_CHOICES = [
+        (STATUS_PENDING, 'Pending'),
+        (STATUS_SUCCESS, 'Success'),
+        (STATUS_FAILED, 'Failed'),
+        (STATUS_CANCELLED, 'Cancelled'),
+        (STATUS_REFUNDED, 'Refunded'),
+    ]
+
+    transaction_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    order_id = models.CharField(max_length=100, unique=True, db_index=True)
+    payment_id = models.CharField(max_length=100, blank=True, null=True, db_index=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='payment_transactions')
+    movie = models.ForeignKey(Movie, on_delete=models.CASCADE, related_name='payment_transactions')
+    theater = models.ForeignKey(Theater, on_delete=models.CASCADE, related_name='payment_transactions')
+    seats = models.ManyToManyField(Seat, related_name='payment_transactions')
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    currency = models.CharField(max_length=10, default='INR')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING, db_index=True)
+    payment_method = models.CharField(max_length=50, blank=True, null=True)
+    error_code = models.CharField(max_length=100, blank=True, null=True)
+    error_description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'Txn {self.transaction_id} ({self.status}) - ₹{self.amount} by {self.user.username}'
+
+
 class Booking(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bookings')
     seat = models.OneToOneField(Seat, on_delete=models.CASCADE)
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE, related_name='bookings')
     theater = models.ForeignKey(Theater, on_delete=models.CASCADE, related_name='bookings')
+    payment = models.ForeignKey(PaymentTransaction, on_delete=models.SET_NULL, null=True, blank=True, related_name='bookings')
     booking_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    payment_reference = models.CharField(max_length=20, blank=True, null=True)
+    payment_reference = models.CharField(max_length=100, blank=True, null=True)
     ticket_pdf = models.FileField(upload_to='tickets/', blank=True, null=True)
     email_sent = models.BooleanField(default=False)
     booked_at = models.DateTimeField(auto_now_add=True)

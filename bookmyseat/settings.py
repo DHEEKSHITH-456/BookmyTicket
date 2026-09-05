@@ -153,3 +153,8 @@ CELERY_TASK_REJECT_ON_WORKER_LOST = True
 
 CELERY_TASK_ALWAYS_EAGER = os.environ.get('CELERY_ALWAYS_EAGER', 'True').lower() == 'true'
 CELERY_TASK_EAGER_PROPAGATES = False
+
+# ─── Razorpay Configuration ───
+RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID', 'rzp_test_bookmyseat_demo')
+RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET', 'test_secret_bookmyseat_12345')
+RAZORPAY_WEBHOOK_SECRET = os.environ.get('RAZORPAY_WEBHOOK_SECRET', 'test_webhook_secret_12345')

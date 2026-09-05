@@ -5,10 +5,21 @@ from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError, transaction
 from django.db.models import Q, Min, Max, Count, Avg
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.http import FileResponse, Http404
+from django.views.decorators.csrf import csrf_exempt
+from django.http import FileResponse, Http404, JsonResponse
 from django.conf import settings
 from django.utils import timezone
-from .models import Movie, Theater, Seat, Booking, Review
+from .models import Movie, Theater, Seat, Booking, Review, PaymentTransaction
+from .payment_service import (
+    create_payment_order,
+    verify_payment_signature,
+    verify_webhook_signature,
+    process_successful_payment,
+    process_failed_payment,
+    process_cancelled_payment,
+    generate_mock_signature,
+)
+import uuid
 
 
 # ════════════════════════════════════════════════
@@ -259,8 +270,8 @@ def theater_list(request, movie_id):
 @login_required(login_url='/login/')
 def book_seats(request, theater_id):
     """
-    Book seats, generate PDF ticket, and trigger async email via Celery.
-    The booking completes immediately — email is sent in the background.
+    Seat selection & payment initialization.
+    Locks seats temporarily in PENDING state and initiates the Razorpay payment workflow.
     """
     theaters = get_object_or_404(Theater, id=theater_id)
     seats = Seat.objects.filter(theater=theaters).order_by('seat_number')
@@ -269,41 +280,45 @@ def book_seats(request, theater_id):
     if request.method == 'POST':
         selected_seats = request.POST.getlist('seats')
         if not selected_seats:
-            error_message = "Please select at least one seat before booking."
+            error_message = "Please select at least one seat before proceeding to payment."
             return render(request, "movies/seat_selection.html", {
                 'theaters': theaters, 'theater': theaters,
                 'seats': seats, 'error': error_message
             })
 
         try:
-            created_bookings = []
             with transaction.atomic():
+                locked_seats = []
                 for seat_id in selected_seats:
                     seat = Seat.objects.select_for_update().get(
                         id=seat_id, theater=theaters, is_booked=False
                     )
                     seat.is_booked = True
-                    seat.save()
-                    booking = Booking.objects.create(
-                        user=request.user,
-                        seat=seat,
-                        movie=theaters.movie,
-                        theater=theaters
-                    )
-                    created_bookings.append(booking)
+                    seat.save(update_fields=['is_booked'])
+                    locked_seats.append(seat)
 
-            # Trigger async ticket generation + email (never blocks booking)
-            try:
-                from movies.tasks import generate_and_email_ticket
-                booking_ids = [b.pk for b in created_bookings]
-                generate_and_email_ticket.delay(booking_ids, request.user.pk)
-            except Exception as task_err:
-                pass
+                total_amount = theaters.ticket_price * len(locked_seats)
 
-            return redirect('booking_confirmation', booking_id=created_bookings[0].booking_id)
+                # Initialize pending PaymentTransaction
+                temp_order_id = f"order_{uuid.uuid4().hex[:14]}"
+                payment_txn = PaymentTransaction.objects.create(
+                    order_id=temp_order_id,
+                    user=request.user,
+                    movie=theaters.movie,
+                    theater=theaters,
+                    amount=total_amount,
+                    currency='INR',
+                    status=PaymentTransaction.STATUS_PENDING,
+                )
+                payment_txn.seats.set(locked_seats)
+
+                # Create Razorpay Order
+                create_payment_order(payment_txn)
+
+            return redirect('payment_checkout', order_id=payment_txn.order_id)
 
         except (Seat.DoesNotExist, IntegrityError):
-            error_message = "Some selected seats are already booked. Please choose different seats."
+            error_message = "Some selected seats were just reserved by another patron. Please select different seats."
             return render(request, "movies/seat_selection.html", {
                 'theaters': theaters, 'theater': theaters,
                 'seats': seats, 'error': error_message
@@ -314,19 +329,194 @@ def book_seats(request, theater_id):
     })
 
 
+# ════════════════════════════════════════════════
+#  TASK 4: Payment Workflow & Verification Views
+# ════════════════════════════════════════════════
+
+@login_required(login_url='/login/')
+def payment_checkout(request, order_id):
+    """
+    Renders the secure payment checkout screen with Razorpay payment modal
+    and sandbox simulation mode.
+    """
+    payment_txn = get_object_or_404(
+        PaymentTransaction.objects.select_related('movie', 'theater'),
+        order_id=order_id,
+        user=request.user
+    )
+
+    # Idempotent redirect if already completed
+    if payment_txn.status == PaymentTransaction.STATUS_SUCCESS:
+        booking = payment_txn.bookings.first()
+        if booking:
+            return redirect('booking_confirmation', booking_id=booking.booking_id)
+
+    if payment_txn.status in [PaymentTransaction.STATUS_FAILED, PaymentTransaction.STATUS_CANCELLED]:
+        return render(request, 'movies/payment_failed.html', {
+            'payment_txn': payment_txn,
+            'theater': payment_txn.theater,
+            'movie': payment_txn.movie,
+            'error_message': f"This transaction was {payment_txn.status.lower()} and seats have been released."
+        })
+
+    seats = payment_txn.seats.all().order_by('seat_number')
+    seat_names = ', '.join(s.seat_number for s in seats)
+    amount_in_paise = int(payment_txn.amount * 100)
+
+    # Pre-calculated test credentials for simulation mode
+    mock_payment_id = f"pay_mock_{uuid.uuid4().hex[:10]}"
+    simulation_signature = generate_mock_signature(payment_txn.order_id, mock_payment_id)
+
+    return render(request, 'movies/payment_checkout.html', {
+        'payment_txn': payment_txn,
+        'theater': payment_txn.theater,
+        'movie': payment_txn.movie,
+        'seats': seats,
+        'seat_names': seat_names,
+        'amount_in_paise': amount_in_paise,
+        'razorpay_key_id': settings.RAZORPAY_KEY_ID,
+        'mock_payment_id': mock_payment_id,
+        'simulation_signature': simulation_signature,
+    })
+
+
+@login_required(login_url='/login/')
+def payment_verify(request):
+    """
+    Server-side verification endpoint for Razorpay payment callbacks.
+    Verifies HMAC-SHA256 signature and confirms bookings idempotently.
+    """
+    if request.method != 'POST':
+        return redirect('movie_list')
+
+    order_id = request.POST.get('razorpay_order_id', '').strip()
+    payment_id = request.POST.get('razorpay_payment_id', '').strip()
+    signature = request.POST.get('razorpay_signature', '').strip()
+    payment_method = request.POST.get('payment_method', 'Razorpay Online')
+
+    if not order_id or not payment_id or not signature:
+        return render(request, 'movies/payment_failed.html', {
+            'error_message': 'Incomplete payment parameters received from payment gateway.'
+        })
+
+    payment_txn = get_object_or_404(PaymentTransaction, order_id=order_id, user=request.user)
+
+    # Verify signature server-side
+    is_valid = verify_payment_signature(order_id, payment_id, signature)
+
+    if not is_valid:
+        process_failed_payment(
+            order_id,
+            error_code='INVALID_SIGNATURE',
+            error_description='Server-side HMAC-SHA256 signature verification failed.'
+        )
+        return render(request, 'movies/payment_failed.html', {
+            'payment_txn': payment_txn,
+            'theater': payment_txn.theater,
+            'movie': payment_txn.movie,
+            'error_message': 'Security check failed. The payment signature could not be verified and reserved seats have been released.'
+        })
+
+    # Signature valid -> Idempotently confirm bookings and dispatch tickets
+    bookings = process_successful_payment(order_id, payment_id, payment_method)
+    if bookings:
+        return redirect('booking_confirmation', booking_id=bookings[0].booking_id)
+
+    return redirect('profile')
+
+
+@login_required(login_url='/login/')
+def payment_failed(request):
+    """
+    Handles payment failure callbacks.
+    Ensures reserved seats are automatically released.
+    """
+    order_id = request.GET.get('order_id') or request.POST.get('order_id')
+    error_code = request.GET.get('error_code') or request.POST.get('error_code', 'PAYMENT_FAILED')
+    error_desc = request.GET.get('error_desc') or request.POST.get('error_desc', 'The transaction was declined or failed.')
+
+    payment_txn = None
+    if order_id:
+        payment_txn = PaymentTransaction.objects.filter(order_id=order_id, user=request.user).first()
+        if payment_txn:
+            process_failed_payment(order_id, error_code, error_desc)
+
+    return render(request, 'movies/payment_failed.html', {
+        'payment_txn': payment_txn,
+        'theater': payment_txn.theater if payment_txn else None,
+        'movie': payment_txn.movie if payment_txn else None,
+        'error_message': error_desc,
+    })
+
+
+@login_required(login_url='/login/')
+def payment_cancel(request, order_id):
+    """
+    User manually cancelled the payment.
+    Automatically releases reserved seats and redirects to seat selection.
+    """
+    payment_txn = get_object_or_404(PaymentTransaction, order_id=order_id, user=request.user)
+    theater_id = payment_txn.theater.id
+    process_cancelled_payment(order_id)
+    return redirect('book_seats', theater_id=theater_id)
+
+
+@csrf_exempt
+def payment_webhook(request):
+    """
+    Server-side webhook listener for Razorpay asynchronous events.
+    Verifies X-Razorpay-Signature header and idempotently processes event.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+    signature_header = request.META.get('HTTP_X_RAZORPAY_SIGNATURE', '')
+    body = request.body
+
+    if not verify_webhook_signature(body, signature_header):
+        return JsonResponse({'error': 'Invalid webhook signature'}, status=400)
+
+    try:
+        import json
+        payload = json.loads(body.decode('utf-8'))
+        event = payload.get('event')
+        entity = payload.get('payload', {}).get('payment', {}).get('entity', {})
+        order_id = entity.get('order_id')
+        payment_id = entity.get('id')
+        method = entity.get('method', 'Webhook')
+
+        if event in ['payment.captured', 'order.paid'] and order_id:
+            process_successful_payment(order_id, payment_id, method)
+        elif event == 'payment.failed' and order_id:
+            error_code = entity.get('error_code', 'WEBHOOK_FAILED')
+            error_desc = entity.get('error_description', 'Payment failed via webhook notification')
+            process_failed_payment(order_id, error_code, error_desc)
+
+        return JsonResponse({'status': 'processed', 'event': event})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+
 @login_required(login_url='/login/')
 def booking_confirmation(request, booking_id):
     """Show booking confirmation with ticket details after successful booking."""
     ref_booking = get_object_or_404(
         Booking, booking_id=booking_id, user=request.user
     )
-    # Get all bookings in the same transaction (same user, movie, theater, close timestamp)
-    related_bookings = Booking.objects.filter(
-        user=request.user,
-        movie=ref_booking.movie,
-        theater=ref_booking.theater,
-        booked_at=ref_booking.booked_at,
-    ).select_related('seat', 'movie', 'theater')
+    # Get all bookings in the same transaction
+    if ref_booking.payment:
+        related_bookings = Booking.objects.filter(
+            payment=ref_booking.payment
+        ).select_related('seat', 'movie', 'theater').order_by('seat__seat_number')
+    else:
+        related_bookings = Booking.objects.filter(
+            user=request.user,
+            movie=ref_booking.movie,
+            theater=ref_booking.theater,
+            booked_at=ref_booking.booked_at,
+        ).select_related('seat', 'movie', 'theater').order_by('seat__seat_number')
+
 
     seat_numbers = ', '.join(b.seat.seat_number for b in related_bookings)
     total_price = ref_booking.theater.ticket_price * related_bookings.count()
