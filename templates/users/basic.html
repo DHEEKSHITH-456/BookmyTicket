@@ -106,16 +106,16 @@
               <a class="nav-link" href="{% url 'profile' %}">Profile</a>
             </li>
             <li class="nav-item">
-              <form method="Post" action="{% url 'logout' %}">
+              <form id="navbar-logout-form" method="POST" action="{% url 'logout' %}" style="display: none;">
                 {% csrf_token %}
-                <button
-                  type="submit"
-                  class="nav-link"
-                  style="border: none; background: none"
-                >
-                  Logout
-                </button>
               </form>
+              <a
+                href="#"
+                class="nav-link"
+                onclick="event.preventDefault(); document.getElementById('navbar-logout-form').submit();"
+              >
+                Logout
+              </a>
             </li>
             {% else %}
             <li class="nav-item">
