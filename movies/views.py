@@ -31,8 +31,13 @@ def get_recommended_movies(request, current_movie_id=None):
     Intelligent recommendation engine based on:
     1. User's past booking history (favorite genres and languages)
     2. User's recently viewed movies stored in session
-    3. Fallback to top-rated & most popular movies
+    3. Fallback to top-rated & most popular movies with active showtimes
     """
+    def _attach_primary_theaters(movie_list):
+        for m in movie_list:
+            m.primary_theater = m.theaters.order_by('time').first()
+        return movie_list
+
     # 1. Recommendation from Booking History (if authenticated)
     if request.user.is_authenticated:
         user_bookings = Booking.objects.filter(user=request.user).select_related('movie')
@@ -52,17 +57,17 @@ def get_recommended_movies(request, current_movie_id=None):
             for g in favorite_genres:
                 genre_query |= Q(genres__name__icontains=g)
 
-            rec_qs = Movie.objects.exclude(id__in=booked_movie_ids)
+            rec_qs = Movie.objects.filter(theaters__isnull=False).exclude(id__in=booked_movie_ids)
             if current_movie_id:
                 rec_qs = rec_qs.exclude(id=current_movie_id)
 
-            history_recs = rec_qs.filter(
+            history_recs = list(rec_qs.filter(
                 genre_query | Q(languages__name__in=favorite_languages)
-            ).order_by('-rating', '-popularity')[:6]
-            if history_recs.exists():
+            ).distinct().order_by('-rating', '-popularity')[:6])
+            if history_recs:
                 for m in history_recs:
                     m.rec_badge = "Based on your booking history"
-                return list(history_recs)
+                return _attach_primary_theaters(history_recs)
 
     # 2. Recommendation from Recently Viewed (session-based)
     recently_viewed_ids = request.session.get('recently_viewed', [])
@@ -77,25 +82,26 @@ def get_recommended_movies(request, current_movie_id=None):
         for g in viewed_genres:
             genre_q |= Q(genres__name__icontains=g)
 
-        rec_qs = Movie.objects.exclude(id__in=recently_viewed_ids)
+        rec_qs = Movie.objects.filter(theaters__isnull=False).exclude(id__in=recently_viewed_ids)
         if current_movie_id:
             rec_qs = rec_qs.exclude(id=current_movie_id)
 
-        view_recs = rec_qs.filter(genre_q).order_by('-rating', '-popularity')[:6]
-        if view_recs.exists():
+        view_recs = list(rec_qs.filter(genre_q).distinct().order_by('-rating', '-popularity')[:6])
+        if view_recs:
             for m in view_recs:
                 m.rec_badge = "Because you recently viewed similar movies"
-            return list(view_recs)
+            return _attach_primary_theaters(view_recs)
 
-    # 3. Fallback: Trending & Top Rated Movies
-    rec_qs = Movie.objects.all()
+    # 3. Fallback: Trending & Top Rated Movies with active theaters
+    rec_qs = Movie.objects.filter(theaters__isnull=False).distinct()
     if current_movie_id:
         rec_qs = rec_qs.exclude(id=current_movie_id)
 
-    top_recs = rec_qs.order_by('-rating', '-popularity')[:6]
+    top_recs = list(rec_qs.order_by('-rating', '-popularity')[:6])
     for m in top_recs:
         m.rec_badge = "Trending & Highest Rated"
-    return list(top_recs)
+    return _attach_primary_theaters(top_recs)
+
 
 
 # ════════════════════════════════════════════════
@@ -647,6 +653,8 @@ def movie_detail(request, movie_id):
     if not similar_movies.exists():
         similar_movies = Movie.objects.exclude(id=movie.id).order_by('-rating', '-popularity')[:4]
 
+    primary_theater = movie.theaters.order_by('time').first()
+
     context = {
         'movie': movie,
         'gallery': gallery,
@@ -654,6 +662,7 @@ def movie_detail(request, movie_id):
         'can_review': can_review,
         'user_review': user_review,
         'similar_movies': similar_movies,
+        'primary_theater': primary_theater,
     }
     return render(request, 'movies/movie_detail.html', context)
 

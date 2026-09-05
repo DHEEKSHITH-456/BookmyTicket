@@ -16,9 +16,18 @@
                     {% if movie.release_date > today %}Upcoming{% else %}In Cinemas{% endif %}
                 </div>
             </div>
-            <a href="{% url 'theater_list' movie.id %}" class="btn btn-block text-white mt-3 py-2 font-weight-bold shadow-sm" style="background-color: #F84464; border-radius: 8px; font-size: 1.1rem;">
-                Book Tickets
+            {% if primary_theater %}
+            <a href="{% url 'book_seats' primary_theater.id %}" class="btn btn-block text-white mt-3 py-2 font-weight-bold shadow-sm" style="background-color: #F84464; border-radius: 8px; font-size: 1.1rem;">
+                <i class="fas fa-ticket-alt mr-1"></i>Book Tickets
             </a>
+            <a href="{% url 'theater_list' movie.id %}" class="btn btn-block btn-outline-secondary mt-2 py-1 small font-weight-bold" style="border-radius: 8px;">
+                View All Theaters & Showtimes &rarr;
+            </a>
+            {% else %}
+            <a href="{% url 'theater_list' movie.id %}" class="btn btn-block text-white mt-3 py-2 font-weight-bold shadow-sm" style="background-color: #F84464; border-radius: 8px; font-size: 1.1rem;">
+                <i class="fas fa-film mr-1"></i>View Showtimes
+            </a>
+            {% endif %}
         </div>
 
         <!-- Right Col: Movie Info -->

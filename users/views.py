@@ -11,7 +11,9 @@ from movies.views import get_recommended_movies
 
 
 def home(request):
-    movies = Movie.objects.all().order_by('-popularity')
+    movies = list(Movie.objects.filter(theaters__isnull=False).distinct().order_by('-popularity'))
+    for m in movies:
+        m.primary_theater = m.theaters.order_by('time').first()
     recommended_movies = get_recommended_movies(request)
     return render(request, 'home.html', {
         'movies': movies,
@@ -29,6 +31,9 @@ def register(request):
             user = form.save()
             # Specify backend to ensure login succeeds without re-authenticating
             login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+            request.session['_auth_user_username'] = user.username
+            request.session['_auth_user_email'] = user.email
+            request.session.modified = True
             messages.success(request, f'Welcome, {user.username}! Your account has been created successfully.')
             return redirect('profile')
         else:
@@ -68,6 +73,9 @@ def login_view(request):
         if user is not None:
             if user.is_active:
                 login(request, user)
+                request.session['_auth_user_username'] = user.username
+                request.session['_auth_user_email'] = user.email
+                request.session.modified = True
                 messages.success(request, f'Welcome back, {user.get_full_name() or user.username}!')
                 next_url = request.GET.get('next') or request.POST.get('next') or 'movie_list'
                 return redirect(next_url)
@@ -88,9 +96,10 @@ def login_view(request):
 
 
 def logout_view(request):
-    """Graceful logout handling supporting both GET and POST."""
-    auth_logout(request)
-    messages.info(request, 'You have been logged out.')
+    """Graceful logout handling requiring POST to prevent accidental prefetch logouts."""
+    if request.method == 'POST':
+        auth_logout(request)
+        messages.info(request, 'You have been logged out.')
     return redirect('home')
 
 

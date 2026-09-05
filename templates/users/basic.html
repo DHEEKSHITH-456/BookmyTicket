@@ -106,9 +106,6 @@
               <a class="nav-link" href="{% url 'profile' %}">Profile</a>
             </li>
             <li class="nav-item">
-              <form id="navbar-logout-form" method="POST" action="{% url 'logout' %}" style="display: none;">
-                {% csrf_token %}
-              </form>
               <a
                 href="#"
                 class="nav-link"
@@ -146,9 +143,9 @@
           <div class="col-md-4 mb-4 mb-md-0">
             <h5>Quick Links</h5>
             <ul class="list-unstyled">
-              <li><a href="#">Home</a></li>
-              <li><a href="#">Movies</a></li>
-              <li><a href="#">Book Tickets</a></li>
+              <li><a href="{% url 'home' %}">Home</a></li>
+              <li><a href="{% url 'movie_list' %}">Movies</a></li>
+              <li><a href="{% url 'movie_list' %}">Book Tickets</a></li>
               <li><a href="#">Contact</a></li>
             </ul>
           </div>
@@ -167,6 +164,9 @@
         </div>
       </div>
     </footer>
+    <form id="navbar-logout-form" method="POST" action="{% url 'logout' %}" style="display: none;">
+      {% csrf_token %}
+    </form>
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>

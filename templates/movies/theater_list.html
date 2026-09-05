@@ -110,12 +110,12 @@
                                             ₹{{ theater.ticket_price|default:"200.00" }}
                                         </strong>
                                     </div>
-                                    <a href="{% url 'book_seats' theater.id %}" class="btn btn-outline-success showtime-btn rounded-pill px-4 py-2 text-center text-decoration-none">
-                                        <div class="font-weight-bold" style="font-size: 1rem;">
-                                            {{ theater.time|date:"g:i A" }}
+                                    <a href="{% url 'book_seats' theater.id %}" class="btn btn-danger showtime-btn rounded-pill px-4 py-2 text-center text-decoration-none font-weight-bold shadow-sm" style="background-color: #F84464; border:none;">
+                                        <div style="font-size: 0.95rem;">
+                                            <i class="fas fa-couch mr-1"></i>Select Seats
                                         </div>
-                                        <span class="small text-muted d-block" style="font-size: 0.75rem;">
-                                            {{ theater.time|date:"D, d M" }}
+                                        <span class="small text-white d-block" style="font-size: 0.75rem; opacity: 0.9;">
+                                            {{ theater.time|date:"g:i A &bull; D, d M" }}
                                         </span>
                                     </a>
                                 </div>
