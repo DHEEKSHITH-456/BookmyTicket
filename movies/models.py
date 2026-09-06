@@ -1,6 +1,7 @@
 import uuid
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 class Genre(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -82,6 +83,30 @@ class Seat(models.Model):
     theater = models.ForeignKey(Theater, on_delete=models.CASCADE, related_name='seats')
     seat_number = models.CharField(max_length=10)
     is_booked = models.BooleanField(default=False)
+    reserved_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='reserved_seats')
+    reserved_until = models.DateTimeField(null=True, blank=True, db_index=True)
+
+    def is_available(self, current_user=None):
+        """Returns True if seat can be reserved or booked by current_user."""
+        now = timezone.now()
+        if self.is_booked:
+            return False
+        if self.reserved_until and self.reserved_until > now:
+            if current_user and self.reserved_by_id == current_user.id:
+                return True
+            return False
+        return True
+
+    def get_status(self, current_user=None):
+        """Returns: 'booked', 'reserved', 'selected_by_me', or 'available'."""
+        now = timezone.now()
+        if self.is_booked:
+            return 'booked'
+        if self.reserved_until and self.reserved_until > now:
+            if current_user and self.reserved_by_id == current_user.id:
+                return 'selected_by_me'
+            return 'reserved'
+        return 'available'
 
     def __str__(self):
         return f'{self.seat_number} in {self.theater.name}'

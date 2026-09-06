@@ -12,7 +12,11 @@
         <div class="card-body p-4 text-white">
           <div class="d-flex flex-wrap justify-content-between align-items-center">
             <div>
-              <span class="badge badge-danger px-2 py-1 mb-2 font-weight-bold" style="background-color: #F84464;">SEAT RESERVATION</span>
+              <div class="d-flex align-items-center mb-2">
+                <span class="badge badge-danger px-2 py-1 font-weight-bold mr-2" style="background-color: #F84464;">SMART SEAT RESERVATION</span>
+                <span class="live-dot mr-1"></span>
+                <span class="small text-success font-weight-bold" id="liveIndicator">Live Availability</span>
+              </div>
               <h3 class="font-weight-bold mb-1">{{ theaters.movie.name }}</h3>
               <p class="small text-light mb-0">
                 <i class="fas fa-film mr-1 text-danger"></i>{{ theaters.name }} ({{ theaters.city }})
@@ -20,24 +24,51 @@
               </p>
             </div>
             <div class="text-md-right mt-3 mt-md-0">
-              <span class="small text-muted d-block">Price Per Ticket</span>
+              <span class="small text-muted d-block font-weight-bold">TICKET PRICE</span>
               <h4 class="text-success font-weight-bold mb-0">₹{{ theaters.ticket_price|default:"200.00" }}</h4>
             </div>
           </div>
         </div>
       </div>
 
+      <!-- Flash Messages -->
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show shadow-sm border-0 rounded-lg d-flex align-items-center mb-4" role="alert">
+            <i class="fas fa-info-circle fa-lg mr-3"></i>
+            <div>{{ message }}</div>
+            <button type="button" class="close ml-auto" data-dismiss="alert" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+        {% endfor %}
+      {% endif %}
+
       <!-- Error Alert if any -->
       {% if error %}
       <div class="alert alert-danger shadow-sm border-0 rounded-lg d-flex align-items-center mb-4">
         <i class="fas fa-exclamation-circle fa-lg mr-3"></i>
-        <div><strong>Booking Error:</strong> {{ error }}</div>
+        <div><strong>Reservation Notice:</strong> {{ error }}</div>
       </div>
       {% endif %}
+
+      <!-- Live Dynamic Toast Container -->
+      <div id="liveSeatToasts"></div>
 
       <!-- Seat Layout Screen Card -->
       <div class="card shadow-sm border-0 rounded-lg overflow-hidden">
         <div class="card-body p-4 text-center">
+
+          <!-- Live Status Bar -->
+          <div class="d-flex justify-content-between align-items-center flex-wrap mb-3 px-2">
+            <div class="small text-muted font-weight-bold">
+              <i class="fas fa-satellite-dish text-success mr-1"></i>
+              Real-Time Seat Feed
+            </div>
+            <div class="small font-weight-bold text-muted" id="liveSeatCounters">
+              Updating seat map...
+            </div>
+          </div>
 
           <!-- Screen Banner -->
           <div class="screen-box mx-auto mb-4">
@@ -54,8 +85,16 @@
             <div class="seats-container mb-4">
               <div class="d-flex flex-wrap justify-content-center" style="max-width: 600px; margin: 0 auto; gap: 8px;">
                 {% for seat in seats %}
-                  <div class="seat-wrapper">
-                    {% if not seat.is_booked %}
+                  <div class="seat-wrapper" id="seat-wrapper-{{ seat.id }}">
+                    {% if seat.current_status == 'booked' %}
+                      <div class="seat-badge booked" title="Seat {{ seat.seat_number }} (Sold / Booked)">
+                        {{ seat.seat_number }}
+                      </div>
+                    {% elif seat.current_status == 'reserved' %}
+                      <div class="seat-badge reserved" title="Seat {{ seat.seat_number }} (Temporarily Reserved by another patron - 2 min hold)">
+                        <i class="far fa-clock mr-1" style="font-size:0.65rem;"></i>{{ seat.seat_number }}
+                      </div>
+                    {% else %}
                       <input
                         type="checkbox"
                         name="seats"
@@ -64,34 +103,41 @@
                         id="seat-{{ seat.id }}"
                         data-seat-number="{{ seat.seat_number }}"
                         data-price="{{ theaters.ticket_price }}"
+                        {% if seat.current_status == 'selected_by_me' %}checked{% endif %}
                       />
-                      <label for="seat-{{ seat.id }}" class="seat-badge available shadow-sm">
+                      <label for="seat-{{ seat.id }}" class="seat-badge available shadow-sm {% if seat.current_status == 'selected_by_me' %}selected{% endif %}">
                         {{ seat.seat_number }}
                       </label>
-                    {% else %}
-                      <div class="seat-badge booked" title="Seat {{ seat.seat_number }} (Already Booked)">
-                        {{ seat.seat_number }}
-                      </div>
                     {% endif %}
                   </div>
                 {% endfor %}
               </div>
             </div>
 
-            <!-- Seat Legend -->
-            <div class="d-flex justify-content-center flex-wrap gap-4 py-3 border-top border-bottom mb-4" style="gap: 25px;">
+            <!-- Seat Legend (4 Distinct States) -->
+            <div class="d-flex justify-content-center flex-wrap gap-4 py-3 border-top border-bottom mb-4" style="gap: 20px;">
               <div class="d-flex align-items-center">
                 <div class="seat-badge available mr-2" style="cursor: default; width: 28px; height: 28px; font-size: 0.75rem;">A1</div>
                 <span class="small text-muted font-weight-bold">Available</span>
               </div>
               <div class="d-flex align-items-center">
                 <div class="seat-badge selected mr-2" style="cursor: default; width: 28px; height: 28px; font-size: 0.75rem;">A2</div>
-                <span class="small text-muted font-weight-bold">Selected</span>
+                <span class="small text-muted font-weight-bold">Selected by You</span>
               </div>
               <div class="d-flex align-items-center">
-                <div class="seat-badge booked mr-2" style="cursor: default; width: 28px; height: 28px; font-size: 0.75rem;">A3</div>
+                <div class="seat-badge reserved mr-2" style="cursor: default; width: 28px; height: 28px; font-size: 0.75rem;"><i class="far fa-clock" style="font-size: 0.6rem;"></i></div>
+                <span class="small text-warning font-weight-bold" style="color: #b7791f !important;">Reserved (2-min hold)</span>
+              </div>
+              <div class="d-flex align-items-center">
+                <div class="seat-badge booked mr-2" style="cursor: default; width: 28px; height: 28px; font-size: 0.75rem;">A4</div>
                 <span class="small text-muted font-weight-bold">Sold / Booked</span>
               </div>
+            </div>
+
+            <!-- 2-Minute Reservation Notice -->
+            <div class="alert alert-info py-2 px-3 mb-4 rounded-lg d-flex align-items-center justify-content-center text-center small">
+              <i class="fas fa-hourglass-half mr-2 text-info"></i>
+              <span>Selected seats remain temporarily reserved for <strong>2 minutes</strong> during checkout. If payment is not completed, they are automatically released.</span>
             </div>
 
             <!-- Live Calculation Summary -->
@@ -112,7 +158,7 @@
 
             <!-- Submit Button -->
             <button type="submit" id="bookBtn" class="btn btn-danger btn-lg rounded-pill px-5 font-weight-bold shadow" style="background-color: #F84464; border:none;" disabled>
-              <i class="fas fa-credit-card mr-2"></i>Proceed to Payment
+              <i class="fas fa-lock mr-2"></i>Hold &amp; Proceed to Payment
             </button>
           </form>
 
@@ -137,6 +183,19 @@
     border-radius: 50%;
     margin-bottom: 8px;
   }
+  .live-dot {
+    width: 9px;
+    height: 9px;
+    background-color: #28a745;
+    border-radius: 50%;
+    display: inline-block;
+    animation: liveDotPulse 1.8s infinite;
+  }
+  @keyframes liveDotPulse {
+    0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7); }
+    70% { transform: scale(1.05); box-shadow: 0 0 0 6px rgba(40, 167, 69, 0); }
+    100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
+  }
   .seat-badge {
     display: inline-flex;
     align-items: center;
@@ -159,7 +218,7 @@
   .seat-badge.available:hover {
     background-color: #28a745;
     color: #ffffff;
-    transform: scale(1.1);
+    transform: scale(1.08);
   }
   .seat-badge.selected {
     background-color: #28a745 !important;
@@ -168,6 +227,14 @@
     transform: scale(1.08);
     box-shadow: 0 4px 10px rgba(40, 167, 69, 0.4);
   }
+  .seat-badge.reserved {
+    background-color: #fff3cd;
+    border: 2px solid #ffc107;
+    color: #856404;
+    cursor: not-allowed;
+    user-select: none;
+    box-shadow: 0 2px 5px rgba(255, 193, 7, 0.2);
+  }
   .seat-badge.booked {
     background-color: #e9ecef;
     border: 1px solid #ced4da;
@@ -175,17 +242,41 @@
     cursor: not-allowed;
     text-decoration: line-through;
   }
+  .toast-alert {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
 </style>
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    const checkboxes = document.querySelectorAll('.seat-checkbox');
     const selectedSeatsText = document.getElementById('selectedSeatsText');
     const totalAmountText = document.getElementById('totalAmountText');
     const bookBtn = document.getElementById('bookBtn');
     const pricePerSeat = parseFloat('{{ theaters.ticket_price|default:"200" }}');
+    const theaterId = '{{ theaters.id }}';
+    const liveCounters = document.getElementById('liveSeatCounters');
+    const toastContainer = document.getElementById('liveSeatToasts');
+
+    function showToast(message, type) {
+      if (!toastContainer) return;
+      const alertDiv = document.createElement('div');
+      alertDiv.className = 'alert alert-' + (type || 'info') + ' alert-dismissible fade show toast-alert shadow-sm border-0 mb-3 small d-flex align-items-center';
+      alertDiv.role = 'alert';
+      alertDiv.innerHTML = '<i class="fas fa-bell mr-2"></i><span>' + message + '</span><button type="button" class="close ml-auto py-1" data-dismiss="alert">&times;</button>';
+      toastContainer.appendChild(alertDiv);
+      setTimeout(function() {
+        if (alertDiv.parentNode) {
+          $(alertDiv).alert('close');
+        }
+      }, 4500);
+    }
 
     function updateSummary() {
+      const checkboxes = document.querySelectorAll('.seat-checkbox');
       const selected = [];
       checkboxes.forEach(function(cb) {
         const label = document.querySelector('label[for="' + cb.id + '"]');
@@ -209,9 +300,79 @@
       }
     }
 
-    checkboxes.forEach(function(cb) {
-      cb.addEventListener('change', updateSummary);
-    });
+    function attachCheckboxListeners() {
+      const checkboxes = document.querySelectorAll('.seat-checkbox');
+      checkboxes.forEach(function(cb) {
+        if (!cb._boundChange) {
+          cb.addEventListener('change', updateSummary);
+          cb._boundChange = true;
+        }
+      });
+    }
+
+    attachCheckboxListeners();
+    updateSummary();
+
+    // ══════════════════════════════════════════════════════════
+    //  Live Seat Polling (Every 3 seconds)
+    // ══════════════════════════════════════════════════════════
+    async function pollLiveSeatStatus() {
+      try {
+        const response = await fetch('/movies/theater/' + theaterId + '/seats/live/');
+        if (!response.ok) return;
+        const data = await response.json();
+
+        // Update live counters
+        if (liveCounters) {
+          liveCounters.innerHTML = '<span class="text-success font-weight-bold">' + data.available_count + ' Available</span> &bull; <span class="text-warning font-weight-bold">' + data.reserved_count + ' Reserved</span> &bull; <span class="text-muted">' + data.booked_count + ' Sold</span>';
+        }
+
+        let selectionChanged = false;
+
+        data.seats.forEach(function(s) {
+          const wrapper = document.getElementById('seat-wrapper-' + s.id);
+          if (!wrapper) return;
+
+          const currentCb = wrapper.querySelector('.seat-checkbox');
+          const isUserChecked = currentCb && currentCb.checked;
+
+          if (s.status === 'booked') {
+            if (isUserChecked) {
+              currentCb.checked = false;
+              selectionChanged = true;
+              showToast('Seat ' + s.seat_number + ' was just confirmed booked by another patron.', 'danger');
+            }
+            wrapper.innerHTML = '<div class="seat-badge booked" title="Seat ' + s.seat_number + ' (Sold / Booked)">' + s.seat_number + '</div>';
+          } else if (s.status === 'reserved') {
+            if (isUserChecked) {
+              currentCb.checked = false;
+              selectionChanged = true;
+              showToast('Seat ' + s.seat_number + ' was temporarily reserved by another patron (2 min hold).', 'warning');
+            }
+            const timeInfo = s.seconds_left > 0 ? ' (' + s.seconds_left + 's left)' : '';
+            wrapper.innerHTML = '<div class="seat-badge reserved" title="Seat ' + s.seat_number + ' - Reserved' + timeInfo + '"><i class="far fa-clock mr-1" style="font-size:0.65rem;"></i>' + s.seat_number + '</div>';
+          } else if (s.status === 'available' || s.status === 'selected_by_me') {
+            if (!currentCb) {
+              // Seat was previously locked or reserved, now released back to available!
+              wrapper.innerHTML = '<input type="checkbox" name="seats" value="' + s.id + '" class="d-none seat-checkbox" id="seat-' + s.id + '" data-seat-number="' + s.seat_number + '" data-price="' + pricePerSeat + '" /><label for="seat-' + s.id + '" class="seat-badge available shadow-sm">' + s.seat_number + '</label>';
+              attachCheckboxListeners();
+              showToast('Seat ' + s.seat_number + ' is now available for booking!', 'success');
+            }
+          }
+        });
+
+        if (selectionChanged) {
+          updateSummary();
+        }
+      } catch (err) {
+        console.warn('Live seat poll error:', err);
+      }
+    }
+
+    // Run poll every 3 seconds
+    setInterval(pollLiveSeatStatus, 3000);
+    // Initial fetch to populate counters
+    pollLiveSeatStatus();
   });
 </script>
 {% endblock %}

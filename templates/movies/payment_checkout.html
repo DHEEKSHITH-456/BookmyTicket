@@ -17,9 +17,9 @@
           <h2 class="font-weight-bold text-dark mb-0">Confirm &amp; Pay</h2>
         </div>
         <div class="text-right">
-          <span class="small text-muted d-block font-weight-bold">SESSION TIMER</span>
-          <span id="sessionTimer" class="badge badge-warning px-3 py-1 font-weight-bold" style="font-size: 1rem; background: #fff3cd; color: #856404; border: 1px solid #ffeeba;">
-            <i class="far fa-clock mr-1"></i> 10:00
+          <span class="small text-muted d-block font-weight-bold">2-MIN SEAT HOLD TIMER</span>
+          <span id="sessionTimer" class="badge badge-warning px-3 py-1 font-weight-bold" style="font-size: 1.05rem; background: #fff3cd; color: #856404; border: 1px solid #ffeeba;">
+            <i class="far fa-clock mr-1"></i> 2:00
           </span>
         </div>
       </div>
@@ -67,22 +67,27 @@
           <div class="alert alert-light border rounded-lg py-2 px-3 mb-4 small text-muted d-flex align-items-center">
             <i class="fas fa-shield-alt fa-2x text-success mr-3"></i>
             <div>
-              <strong>Server-Side 256-Bit SSL Protection:</strong> Your transaction is encrypted and verified directly on the server. Seats are temporarily reserved and will automatically release if the payment is cancelled.
+              <strong>2-Minute Smart Reservation Hold:</strong> Your selected seats are exclusively reserved for you for 2 minutes. You can modify your seats before checkout or complete the payment below. If the timer expires, seats are automatically released.
             </div>
           </div>
 
-          <!-- Razorpay Payment Trigger Form -->
+          <!-- Actions Row (Pay, Modify, Cancel) -->
           <div class="row">
-            <div class="col-md-7 mb-2 mb-md-0">
-              <button type="button" id="rzp-pay-button" class="btn btn-danger btn-block py-3 rounded-pill font-weight-bold shadow" style="background-color: #F84464; border:none; font-size: 1.1rem;">
+            <div class="col-md-6 mb-2 mb-md-0">
+              <button type="button" id="rzp-pay-button" class="btn btn-danger btn-block py-3 rounded-pill font-weight-bold shadow" style="background-color: #F84464; border:none; font-size: 1.05rem;">
                 <i class="fas fa-lock mr-2"></i>Pay ₹{{ payment_txn.amount }} with Razorpay
               </button>
             </div>
-            <div class="col-md-5">
+            <div class="col-md-3 mb-2 mb-md-0">
+              <a href="{% url 'modify_seats' payment_txn.order_id %}" class="btn btn-outline-primary btn-block py-3 rounded-pill font-weight-bold" style="font-size: 0.95rem;">
+                <i class="fas fa-edit mr-1"></i>Modify Seats
+              </a>
+            </div>
+            <div class="col-md-3">
               <form action="{% url 'payment_cancel' payment_txn.order_id %}" method="POST">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-outline-secondary btn-block py-3 rounded-pill font-weight-bold">
-                  <i class="fas fa-times-circle mr-1"></i>Cancel &amp; Release
+                <button type="submit" class="btn btn-outline-secondary btn-block py-3 rounded-pill font-weight-bold" style="font-size: 0.95rem;">
+                  <i class="fas fa-times-circle mr-1"></i>Cancel
                 </button>
               </form>
             </div>
@@ -172,17 +177,32 @@
     e.preventDefault();
   }
 
-  // 10-minute countdown timer
-  let timeLeft = 600;
+  // ══════════════════════════════════════════════════════════
+  //  Task 5: 2-Minute Reservation Countdown Timer
+  // ══════════════════════════════════════════════════════════
+  let timeLeft = parseInt('{{ remaining_seconds|default:120 }}', 10);
   const timerElem = document.getElementById('sessionTimer');
-  const timerInterval = setInterval(function() {
-    timeLeft--;
+
+  function updateTimerDisplay() {
     const minutes = Math.floor(timeLeft / 60);
     const seconds = timeLeft % 60;
     timerElem.innerHTML = '<i class="far fa-clock mr-1"></i> ' + minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+    if (timeLeft <= 30) {
+      timerElem.style.background = '#f8d7da';
+      timerElem.style.color = '#721c24';
+      timerElem.style.border = '1px solid #f5c6cb';
+    }
+  }
+
+  updateTimerDisplay();
+
+  const timerInterval = setInterval(function() {
+    timeLeft--;
     if (timeLeft <= 0) {
       clearInterval(timerInterval);
-      window.location.href = "{% url 'payment_failed' %}?order_id={{ payment_txn.order_id }}&error_code=TIMEOUT&error_desc=Payment+session+expired";
+      window.location.href = "{% url 'payment_failed' %}?order_id={{ payment_txn.order_id }}&error_code=TIMEOUT&error_desc=2-minute+seat+reservation+expired";
+    } else {
+      updateTimerDisplay();
     }
   }, 1000);
 </script>

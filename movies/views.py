@@ -1,6 +1,7 @@
 import os
-from datetime import date
+from datetime import date, timedelta
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError, transaction
 from django.db.models import Q, Min, Max, Count, Avg
@@ -17,6 +18,7 @@ from .payment_service import (
     process_successful_payment,
     process_failed_payment,
     process_cancelled_payment,
+    release_expired_reservations,
     generate_mock_signature,
 )
 import uuid
@@ -270,17 +272,61 @@ def theater_list(request, movie_id):
 
 
 # ════════════════════════════════════════════════
-#  TASK 2: Booking with Ticket Generation & Email
 # ════════════════════════════════════════════════
+#  TASK 5: Smart Seat Reservation with Live Availability
+# ════════════════════════════════════════════════
+
+def live_seat_status(request, theater_id):
+    """
+    Task 5: Real-time API endpoint returning live seat availability for a theater.
+    Automatically cleans up expired reservations and returns current status for each seat.
+    """
+    theater = get_object_or_404(Theater, id=theater_id)
+    release_expired_reservations(theater=theater)
+
+    seats = Seat.objects.filter(theater=theater).order_by('seat_number')
+    now = timezone.now()
+    current_user = request.user if request.user.is_authenticated else None
+
+    seat_list = []
+    for seat in seats:
+        status = seat.get_status(current_user=current_user)
+        seconds_left = 0
+        if seat.reserved_until and seat.reserved_until > now:
+            seconds_left = max(0, int((seat.reserved_until - now).total_seconds()))
+        seat_list.append({
+            'id': seat.id,
+            'seat_number': seat.seat_number,
+            'status': status,
+            'seconds_left': seconds_left,
+        })
+
+    return JsonResponse({
+        'theater_id': theater.id,
+        'seats': seat_list,
+        'total_seats': len(seat_list),
+        'available_count': sum(1 for s in seat_list if s['status'] == 'available'),
+        'reserved_count': sum(1 for s in seat_list if s['status'] in ['reserved', 'selected_by_me']),
+        'booked_count': sum(1 for s in seat_list if s['status'] == 'booked'),
+        'server_time': now.isoformat(),
+    })
+
 
 @login_required(login_url='/login/')
 def book_seats(request, theater_id):
     """
     Seat selection & payment initialization.
-    Locks seats temporarily in PENDING state and initiates the Razorpay payment workflow.
+    Locks seats with a temporary 2-minute reservation using Django transactions.
+    Concurrent booking attempts for the same seats are guarded by select_for_update().
     """
     theaters = get_object_or_404(Theater, id=theater_id)
+    # Release any expired reservations for this theater
+    release_expired_reservations(theater=theaters)
+
     seats = Seat.objects.filter(theater=theaters).order_by('seat_number')
+    for seat in seats:
+        seat.current_status = seat.get_status(request.user)
+
     error_message = None
 
     if request.method == 'POST':
@@ -294,14 +340,49 @@ def book_seats(request, theater_id):
 
         try:
             with transaction.atomic():
-                locked_seats = []
-                for seat_id in selected_seats:
-                    seat = Seat.objects.select_for_update().get(
-                        id=seat_id, theater=theaters, is_booked=False
-                    )
-                    seat.is_booked = True
-                    seat.save(update_fields=['is_booked'])
-                    locked_seats.append(seat)
+                # Clean up expired reservations under transaction lock
+                Seat.objects.filter(
+                    theater=theaters,
+                    is_booked=False,
+                    reserved_until__lte=timezone.now()
+                ).update(reserved_by=None, reserved_until=None)
+
+                # Acquire row-level locks on requested seats
+                locked_seats = list(
+                    Seat.objects.select_for_update().filter(id__in=selected_seats, theater=theaters)
+                )
+
+                if len(locked_seats) != len(selected_seats):
+                    raise Seat.DoesNotExist("One or more selected seats could not be found.")
+
+                # Check if any seat is already booked or reserved by another patron
+                for seat in locked_seats:
+                    if not seat.is_available(request.user):
+                        raise IntegrityError(f"Seat {seat.seat_number} is no longer available.")
+
+                # Clear previous unconfirmed reservations from this user in this theater
+                prev_txns = PaymentTransaction.objects.filter(
+                    user=request.user,
+                    theater=theaters,
+                    status=PaymentTransaction.STATUS_PENDING
+                )
+                for p_txn in prev_txns:
+                    for old_seat in p_txn.seats.select_for_update():
+                        if str(old_seat.id) not in selected_seats:
+                            old_seat.reserved_by = None
+                            old_seat.reserved_until = None
+                            old_seat.save(update_fields=['reserved_by', 'reserved_until'])
+                    p_txn.status = PaymentTransaction.STATUS_CANCELLED
+                    p_txn.error_description = "Superseded by new seat selection"
+                    p_txn.save(update_fields=['status', 'error_description', 'updated_at'])
+
+                # Reserve selected seats for 2 minutes (120 seconds)
+                reservation_expiry = timezone.now() + timedelta(seconds=120)
+                for seat in locked_seats:
+                    seat.reserved_by = request.user
+                    seat.reserved_until = reservation_expiry
+                    seat.is_booked = False
+                    seat.save(update_fields=['reserved_by', 'reserved_until', 'is_booked'])
 
                 total_amount = theaters.ticket_price * len(locked_seats)
 
@@ -324,7 +405,10 @@ def book_seats(request, theater_id):
             return redirect('payment_checkout', order_id=payment_txn.order_id)
 
         except (Seat.DoesNotExist, IntegrityError):
-            error_message = "Some selected seats were just reserved by another patron. Please select different seats."
+            error_message = "Some selected seats were just reserved or booked by another patron. Please select different seats."
+            seats = Seat.objects.filter(theater=theaters).order_by('seat_number')
+            for seat in seats:
+                seat.current_status = seat.get_status(request.user)
             return render(request, "movies/seat_selection.html", {
                 'theaters': theaters, 'theater': theaters,
                 'seats': seats, 'error': error_message
@@ -335,6 +419,32 @@ def book_seats(request, theater_id):
     })
 
 
+@login_required(login_url='/login/')
+def modify_seats(request, order_id):
+    """
+    Task 5: Allows the user to modify seat selection before completing payment.
+    Releases all currently held seats immediately and cancels the pending order.
+    """
+    payment_txn = get_object_or_404(PaymentTransaction, order_id=order_id, user=request.user)
+    theater_id = payment_txn.theater.id
+
+    if payment_txn.status == PaymentTransaction.STATUS_PENDING:
+        with transaction.atomic():
+            for seat in payment_txn.seats.select_for_update():
+                seat.reserved_by = None
+                seat.reserved_until = None
+                seat.is_booked = False
+                seat.save(update_fields=['reserved_by', 'reserved_until', 'is_booked'])
+
+            payment_txn.status = PaymentTransaction.STATUS_CANCELLED
+            payment_txn.error_description = "User modified seat selection"
+            payment_txn.save(update_fields=['status', 'error_description', 'updated_at'])
+
+        messages.info(request, "Your previous seat reservation has been released. You can now select your new seats.")
+
+    return redirect('book_seats', theater_id=theater_id)
+
+
 # ════════════════════════════════════════════════
 #  TASK 4: Payment Workflow & Verification Views
 # ════════════════════════════════════════════════
@@ -342,8 +452,8 @@ def book_seats(request, theater_id):
 @login_required(login_url='/login/')
 def payment_checkout(request, order_id):
     """
-    Renders the secure payment checkout screen with Razorpay payment modal
-    and sandbox simulation mode.
+    Renders the secure payment checkout screen with Razorpay payment modal,
+    live 2-minute countdown timer, and option to modify seat selection.
     """
     payment_txn = get_object_or_404(
         PaymentTransaction.objects.select_related('movie', 'theater'),
@@ -365,6 +475,34 @@ def payment_checkout(request, order_id):
             'error_message': f"This transaction was {payment_txn.status.lower()} and seats have been released."
         })
 
+    # Task 5: Verify 2-minute temporary reservation validity
+    now = timezone.now()
+    seats = list(payment_txn.seats.all().order_by('seat_number'))
+
+    expired = False
+    earliest_expiry = None
+    for seat in seats:
+        if seat.reserved_until:
+            if not earliest_expiry or seat.reserved_until < earliest_expiry:
+                earliest_expiry = seat.reserved_until
+            if seat.reserved_until <= now:
+                expired = True
+                break
+        else:
+            expired = True
+            break
+
+    if expired:
+        process_failed_payment(
+            order_id,
+            error_code='RESERVATION_EXPIRED',
+            error_description='The 2-minute reservation period has expired. Seats were automatically released.'
+        )
+        messages.warning(request, "Your 2-minute seat reservation expired. Please re-select your seats.")
+        return redirect('book_seats', theater_id=payment_txn.theater.id)
+
+    remaining_seconds = max(0, int((earliest_expiry - now).total_seconds())) if earliest_expiry else 120
+
     seats = payment_txn.seats.all().order_by('seat_number')
     seat_names = ', '.join(s.seat_number for s in seats)
     amount_in_paise = int(payment_txn.amount * 100)
@@ -383,6 +521,7 @@ def payment_checkout(request, order_id):
         'razorpay_key_id': settings.RAZORPAY_KEY_ID,
         'mock_payment_id': mock_payment_id,
         'simulation_signature': simulation_signature,
+        'remaining_seconds': remaining_seconds,
     })
 
 

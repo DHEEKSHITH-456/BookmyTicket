@@ -159,7 +159,9 @@ def process_successful_payment(order_id: str, payment_id: str, payment_method: s
         created_bookings = []
         for seat in payment_txn.seats.select_for_update():
             seat.is_booked = True
-            seat.save(update_fields=['is_booked'])
+            seat.reserved_by = None
+            seat.reserved_until = None
+            seat.save(update_fields=['is_booked', 'reserved_by', 'reserved_until'])
 
             # Idempotent booking creation / retrieval
             booking, created = Booking.objects.get_or_create(
@@ -217,7 +219,9 @@ def process_failed_payment(order_id: str, error_code: str = None, error_descript
             # Only release if no other confirmed booking holds this seat
             if not Booking.objects.filter(seat=seat).exclude(payment=payment_txn).exists():
                 seat.is_booked = False
-                seat.save(update_fields=['is_booked'])
+                seat.reserved_by = None
+                seat.reserved_until = None
+                seat.save(update_fields=['is_booked', 'reserved_by', 'reserved_until'])
 
         logger.info(f"Payment {order_id} marked FAILED. Reserved seats released.")
         return payment_txn
@@ -249,7 +253,32 @@ def process_cancelled_payment(order_id: str):
         for seat in payment_txn.seats.select_for_update():
             if not Booking.objects.filter(seat=seat).exclude(payment=payment_txn).exists():
                 seat.is_booked = False
-                seat.save(update_fields=['is_booked'])
+                seat.reserved_by = None
+                seat.reserved_until = None
+                seat.save(update_fields=['is_booked', 'reserved_by', 'reserved_until'])
 
         logger.info(f"Payment {order_id} CANCELLED by user. Reserved seats released.")
         return payment_txn
+
+
+def release_expired_reservations(theater=None):
+    """
+    Cleans up all temporary reservations whose 2-minute window has expired (reserved_until <= now)
+    and where no confirmed Booking exists.
+    """
+    now = timezone.now()
+    qs = Seat.objects.filter(is_booked=False, reserved_until__lte=now)
+    if theater:
+        qs = qs.filter(theater=theater)
+
+    with transaction.atomic():
+        seats = list(qs.select_for_update())
+        updated_count = 0
+        for seat in seats:
+            seat.reserved_by = None
+            seat.reserved_until = None
+            seat.save(update_fields=['reserved_by', 'reserved_until'])
+            updated_count += 1
+        if updated_count > 0:
+            logger.info(f"Released {updated_count} expired seat reservation(s).")
+        return updated_count
