@@ -24,12 +24,6 @@ CSRF_TRUSTED_ORIGINS = [
     'http://0.0.0.0:8000',
 ]
 
-# Use signed cookies for sessions so authentication persists across all serverless instances
-SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
-SESSION_COOKIE_HTTPONLY = True
-SESSION_SAVE_EVERY_REQUEST = True
-SESSION_COOKIE_AGE = 1209600  # 2 weeks
-
 # Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -49,8 +43,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'bookmyseat.middleware.ServerlessSessionUserMiddleware',
+    'bookmyseat.middleware.ServerlessAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -163,6 +156,11 @@ RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID', 'rzp_test_bookmyseat_demo')
 RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET', 'test_secret_bookmyseat_12345')
 RAZORPAY_WEBHOOK_SECRET = os.environ.get('RAZORPAY_WEBHOOK_SECRET', 'test_webhook_secret_12345')
 
+# ─── SSL and Proxy Configuration for Vercel ───
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
+USE_X_FORWARDED_PORT = True
+
 # ─── Session Configuration for Serverless / Ephemeral Environments ───
 SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
 SESSION_COOKIE_HTTPONLY = True
@@ -176,4 +174,5 @@ if os.environ.get('VERCEL'):
 else:
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
+
 

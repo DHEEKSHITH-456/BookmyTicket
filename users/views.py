@@ -31,8 +31,11 @@ def register(request):
             user = form.save()
             # Specify backend to ensure login succeeds without re-authenticating
             login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+            request.session['_auth_user_id'] = str(user.pk)
             request.session['_auth_user_username'] = user.username
             request.session['_auth_user_email'] = user.email
+            request.session['_auth_user_backend'] = 'django.contrib.auth.backends.ModelBackend'
+            request.session['_auth_user_hash'] = user.get_session_auth_hash()
             request.session.modified = True
             messages.success(request, f'Welcome, {user.username}! Your account has been created successfully.')
             return redirect('profile')
@@ -90,9 +93,12 @@ def login_view(request):
 
         if user is not None:
             if user.is_active:
-                login(request, user)
+                login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+                request.session['_auth_user_id'] = str(user.pk)
                 request.session['_auth_user_username'] = user.username
                 request.session['_auth_user_email'] = user.email
+                request.session['_auth_user_backend'] = 'django.contrib.auth.backends.ModelBackend'
+                request.session['_auth_user_hash'] = user.get_session_auth_hash()
                 request.session.modified = True
                 messages.success(request, f'Welcome back, {user.get_full_name() or user.username}!')
                 next_url = request.GET.get('next') or request.POST.get('next') or 'movie_list'
@@ -152,6 +158,12 @@ def reset_password(request):
         if form.is_valid():
             user = form.save()
             login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+            request.session['_auth_user_id'] = str(user.pk)
+            request.session['_auth_user_username'] = user.username
+            request.session['_auth_user_email'] = user.email
+            request.session['_auth_user_backend'] = 'django.contrib.auth.backends.ModelBackend'
+            request.session['_auth_user_hash'] = user.get_session_auth_hash()
+            request.session.modified = True
             messages.success(request, 'Your password has been changed successfully!')
             return redirect('profile')
         else:
