@@ -18,7 +18,10 @@ CSRF_TRUSTED_ORIGINS = [
     'https://*.vercel.app',
     'https://*.now.sh',
     'http://127.0.0.1',
+    'http://127.0.0.1:8000',
     'http://localhost',
+    'http://localhost:8000',
+    'http://0.0.0.0:8000',
 ]
 
 # Use signed cookies for sessions so authentication persists across all serverless instances

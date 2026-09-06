@@ -28,17 +28,18 @@ class ServerlessSessionUserMiddleware(MiddlewareMixin):
                 session.modified = True
             return
 
-        # If user_id exists in session but request.user is Anonymous
-        if user_id:
-            user = User.objects.filter(pk=user_id).first()
-            if not user and user_username:
+        # If user identity exists in session but request.user is Anonymous
+        if user_username or user_id:
+            user = None
+            if user_username:
                 user = User.objects.filter(username__iexact=user_username).first()
+            if not user and user_id:
+                user = User.objects.filter(pk=user_id).first()
 
             # If user not found in local ephemeral DB, auto-restore
             if not user and user_username:
                 email = session.get('_auth_user_email', f'{user_username}@example.com')
                 user = User.objects.create(
-                    id=int(user_id) if str(user_id).isdigit() else None,
                     username=user_username,
                     email=email,
                     is_active=True,
