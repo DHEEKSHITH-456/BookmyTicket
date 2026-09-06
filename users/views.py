@@ -96,10 +96,9 @@ def login_view(request):
 
 
 def logout_view(request):
-    """Graceful logout handling requiring POST to prevent accidental prefetch logouts."""
-    if request.method == 'POST':
-        auth_logout(request)
-        messages.info(request, 'You have been logged out.')
+    """Graceful logout handling supporting both POST and GET."""
+    auth_logout(request)
+    messages.info(request, 'You have been logged out.')
     return redirect('home')
 
 
