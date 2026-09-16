@@ -2,8 +2,12 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from movies import dashboard_views
+
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('dashboard/', dashboard_views.admin_dashboard, name='admin_dashboard_root'),
+    path('dashboard/export/<str:report_type>/', dashboard_views.export_dashboard_csv, name='export_dashboard_csv_root'),
     path('users/', include('users.urls')),
     path('',include('users.urls')),
     path('movies/', include('movies.urls')),

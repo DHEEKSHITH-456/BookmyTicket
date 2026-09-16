@@ -108,6 +108,11 @@ class Seat(models.Model):
             return 'reserved'
         return 'available'
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['theater', 'is_booked'], name='seat_theater_booked_idx'),
+        ]
+
     def __str__(self):
         return f'{self.seat_number} in {self.theater.name}'
 
@@ -140,11 +145,16 @@ class PaymentTransaction(models.Model):
     payment_method = models.CharField(max_length=50, blank=True, null=True)
     error_code = models.CharField(max_length=100, blank=True, null=True)
     error_description = models.TextField(blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['created_at'], name='pay_created_at_idx'),
+            models.Index(fields=['status', 'created_at'], name='pay_status_created_idx'),
+            models.Index(fields=['user', 'created_at'], name='pay_user_created_idx'),
+        ]
 
     def __str__(self):
         return f'Txn {self.transaction_id} ({self.status}) - ₹{self.amount} by {self.user.username}'
@@ -160,7 +170,16 @@ class Booking(models.Model):
     payment_reference = models.CharField(max_length=100, blank=True, null=True)
     ticket_pdf = models.FileField(upload_to='tickets/', blank=True, null=True)
     email_sent = models.BooleanField(default=False)
-    booked_at = models.DateTimeField(auto_now_add=True)
+    booked_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ['-booked_at']
+        indexes = [
+            models.Index(fields=['booked_at'], name='booking_booked_at_idx'),
+            models.Index(fields=['theater', 'booked_at'], name='booking_theater_date_idx'),
+            models.Index(fields=['movie', 'booked_at'], name='booking_movie_date_idx'),
+            models.Index(fields=['user', 'booked_at'], name='booking_user_date_idx'),
+        ]
 
     def save(self, *args, **kwargs):
         if not self.payment_reference:

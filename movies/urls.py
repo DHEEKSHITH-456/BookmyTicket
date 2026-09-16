@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from . import dashboard_views
 
 urlpatterns = [
     path('', views.movie_list, name='movie_list'),
@@ -15,4 +16,8 @@ urlpatterns = [
     path('payment/webhook/', views.payment_webhook, name='payment_webhook'),
     path('booking/<uuid:booking_id>/confirmation/', views.booking_confirmation, name='booking_confirmation'),
     path('booking/<uuid:booking_id>/download-ticket/', views.download_ticket, name='download_ticket'),
+    
+    # Task 6: Admin Business Insights Dashboard & CSV Exports
+    path('dashboard/', dashboard_views.admin_dashboard, name='admin_dashboard'),
+    path('dashboard/export/<str:report_type>/', dashboard_views.export_dashboard_csv, name='export_dashboard_csv'),
 ]

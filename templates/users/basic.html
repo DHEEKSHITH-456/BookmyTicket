@@ -96,6 +96,13 @@
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav ml-auto">
             {% if user.is_authenticated %}
+            {% if user.is_staff or user.is_superuser %}
+            <li class="nav-item">
+              <a class="nav-link font-weight-bold text-warning" href="{% url 'admin_dashboard' %}">
+                <i class="fas fa-chart-line mr-1"></i>Admin Dashboard
+              </a>
+            </li>
+            {% endif %}
             <li class="nav-item">
               <a class="nav-link" href="/">Home</a>
             </li>
