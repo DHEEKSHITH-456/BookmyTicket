@@ -11,7 +11,6 @@ As required for evaluation and auditing, pre-configured accounts are provided be
 | Role | Username | Password | Email | Access Permissions |
 |---|---|---|---|---|
 | **Superuser / Head Admin** | `admin` | `admin123` | `admin@example.com` | Full Superuser & Staff Access (Django Admin + Real-Time Dashboard) |
-| **Staff Administrator** | `dheekshith` | `testpass123` | `dheekshith@example.com` | Staff Member (Real-Time Admin Dashboard + CSV Reports Export) |
 | **Standard Test Patron** | `testuser` | `testpass123` | `test@example.com` | Standard Patron (Booking, Matrix, Reviews, Ledger) |
 
 ---

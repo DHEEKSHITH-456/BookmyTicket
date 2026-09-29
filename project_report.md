@@ -22,7 +22,6 @@ As required by the project specifications, administrative access credentials for
 | Role | Username | Password | Email | Access Permissions |
 |---|---|---|---|---|
 | **Superuser / Head Admin** | `admin` | `admin123` | `admin@example.com` | Full Superuser & Staff Access (Django Admin + Real-Time Dashboard) |
-| **Staff Administrator** | `dheekshith` | `testpass123` | `dheekshith@example.com` | Staff Member (Real-Time Admin Dashboard + Reports Export) |
 | **Standard Test Patron** | `testuser` | `testpass123` | `test@example.com` | Standard Patron (Booking, Seat Selection, Reviews, Ledger) |
 
 ---

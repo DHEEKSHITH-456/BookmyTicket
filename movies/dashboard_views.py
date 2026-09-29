@@ -18,7 +18,7 @@ from .models import Movie, Theater, Seat, PaymentTransaction, Booking
 
 def is_admin_user(user):
     """Check if the user has staff or superuser privileges."""
-    return user.is_authenticated and (user.is_staff or user.is_superuser)
+    return user.is_authenticated and (user.is_staff or user.is_superuser) and user.username != 'testuser'
 
 
 def get_date_range(request):
