@@ -126,9 +126,9 @@ def movie_list(request):
     selected_city = request.GET.get('city', '').strip()
     selected_theater = request.GET.get('theater', '').strip()
     selected_rating = request.GET.get('rating', '').strip()
-    selected_timing = request.GET.get('timing', '').strip()
-    selected_release = request.GET.get('release', '').strip()
-    selected_max_price = request.GET.get('max_price', '').strip()
+    selected_timing = request.GET.get('timing', request.GET.get('show_timing', '')).strip()
+    selected_release = request.GET.get('release', request.GET.get('status', request.GET.get('release_date', ''))).strip()
+    selected_max_price = request.GET.get('max_price', request.GET.get('price', '')).strip()
     sort_by = request.GET.get('sort', 'popularity').strip()
 
     movies = Movie.objects.annotate(
@@ -173,6 +173,8 @@ def movie_list(request):
         movies = movies.filter(release_date__lte=today)
     elif selected_release == 'upcoming':
         movies = movies.filter(release_date__gt=today)
+    elif selected_release and selected_release != 'All':
+        movies = movies.filter(release_date__icontains=selected_release)
 
     if selected_max_price:
         try:
@@ -182,13 +184,13 @@ def movie_list(request):
 
     movies = movies.distinct()
 
-    if sort_by == 'newest':
+    if sort_by in ['newest', '-release_date']:
         movies = movies.order_by('-release_date', '-id')
-    elif sort_by == 'rating':
+    elif sort_by in ['rating', '-rating']:
         movies = movies.order_by('-rating', '-popularity')
-    elif sort_by == 'price_asc':
+    elif sort_by in ['price_asc', 'price', 'ticket_price']:
         movies = movies.order_by('min_ticket_price', '-rating')
-    elif sort_by == 'price_desc':
+    elif sort_by in ['price_desc', '-price', '-ticket_price']:
         movies = movies.order_by('-min_ticket_price', '-rating')
     else:
         movies = movies.order_by('-popularity', '-rating')
@@ -734,6 +736,15 @@ def movie_detail(request, movie_id):
     Only allows authenticated users who have already watched to submit a review.
     """
     movie = get_object_or_404(Movie, id=movie_id)
+
+    # Track recently viewed movie in session for recommendations
+    recently_viewed = request.session.get('recently_viewed', [])
+    if movie_id in recently_viewed:
+        recently_viewed.remove(movie_id)
+    recently_viewed.insert(0, movie_id)
+    request.session['recently_viewed'] = recently_viewed[:10]
+    request.session.modified = True
+
     gallery = movie.gallery.all()
     reviews = movie.reviews.all().order_by('-created_at')
     

@@ -27,6 +27,7 @@
                     {% if selected_genre %}<input type="hidden" name="genre" value="{{ selected_genre }}">{% endif %}
                     {% if selected_language %}<input type="hidden" name="language" value="{{ selected_language }}">{% endif %}
                     {% if selected_city %}<input type="hidden" name="city" value="{{ selected_city }}">{% endif %}
+                    {% if selected_theater %}<input type="hidden" name="theater" value="{{ selected_theater }}">{% endif %}
                     {% if selected_rating %}<input type="hidden" name="rating" value="{{ selected_rating }}">{% endif %}
                     {% if selected_timing %}<input type="hidden" name="timing" value="{{ selected_timing }}">{% endif %}
                     {% if selected_release %}<input type="hidden" name="release" value="{{ selected_release }}">{% endif %}
@@ -134,6 +135,19 @@
                                 <option value="">All Cities</option>
                                 {% for c in cities %}
                                 <option value="{{ c }}" {% if selected_city == c %}selected{% endif %}>{{ c }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- 2b. Theater Filter -->
+                        <div class="mb-4">
+                            <label class="font-weight-bold small text-uppercase text-muted mb-2 d-block">
+                                <i class="fas fa-landmark mr-1"></i> Cinema / Theater
+                            </label>
+                            <select name="theater" class="form-control form-control-sm rounded" onchange="this.form.submit()">
+                                <option value="">All Theaters</option>
+                                {% for th in theaters %}
+                                <option value="{{ th }}" {% if selected_theater == th %}selected{% endif %}>{{ th }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -272,6 +286,7 @@
                         {% if selected_genre %}<input type="hidden" name="genre" value="{{ selected_genre }}">{% endif %}
                         {% if selected_language %}<input type="hidden" name="language" value="{{ selected_language }}">{% endif %}
                         {% if selected_city %}<input type="hidden" name="city" value="{{ selected_city }}">{% endif %}
+                        {% if selected_theater %}<input type="hidden" name="theater" value="{{ selected_theater }}">{% endif %}
                         {% if selected_rating %}<input type="hidden" name="rating" value="{{ selected_rating }}">{% endif %}
                         {% if selected_timing %}<input type="hidden" name="timing" value="{{ selected_timing }}">{% endif %}
                         {% if selected_release %}<input type="hidden" name="release" value="{{ selected_release }}">{% endif %}
@@ -305,6 +320,11 @@
                 {% if selected_city %}
                 <span class="badge badge-light border text-dark p-2 mr-1 mb-1">
                     City: {{ selected_city }}
+                </span>
+                {% endif %}
+                {% if selected_theater %}
+                <span class="badge badge-light border text-dark p-2 mr-1 mb-1">
+                    Theater: {{ selected_theater }}
                 </span>
                 {% endif %}
                 {% if selected_rating %}
