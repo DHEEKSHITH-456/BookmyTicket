@@ -260,51 +260,54 @@ class Seat(models.Model):
 
 | # | Test Case | Target Area | Result |
 |---|---|---|---|
-| 1 | Search Title/Cast (`Kalki`) | Discovery Module (Task 1) | ✅ PASS |
-| 2 | Filter by Genre (`Sci-Fi`) | Discovery Module (Task 1) | ✅ PASS |
-| 3 | Filter by Language (`Telugu`) | Discovery Module (Task 1) | ✅ PASS |
-| 4 | Filter by City (`Hyderabad`) | Discovery Module (Task 1) | ✅ PASS |
-| 5 | Filter by Rating (`>=8.8`) | Discovery Module (Task 1) | ✅ PASS |
-| 6 | Filter by Timing (`Morning`) | Discovery Module (Task 1) | ✅ PASS |
-| 7 | Filter by Price (`<=200`) | Discovery Module (Task 1) | ✅ PASS |
-| 8 | Sorting (Popularity, Rating, Price) | Discovery Module (Task 1) | ✅ PASS |
-| 9 | Pagination (6 items / page) | Discovery Module (Task 1) | ✅ PASS |
-| 10 | Homepage Recommendations | Discovery Module (Task 1) | ✅ PASS |
-| 11 | PDF Ticket Generation + QR Code | Ticketing Module (Task 2) | ✅ PASS |
-| 12 | Celery Async Task & Auto-Retry | Async Email Module (Task 2) | ✅ PASS |
-| 13 | Download Ticket Endpoint (PDF) | Ticketing Module (Task 2) | ✅ PASS |
-| 14 | Booking Confirmation View | Booking Module (Task 2) | ✅ PASS |
-| 15 | Profile History Download Buttons | Profile Module (Task 2) | ✅ PASS |
-| 16 | Movie Detail Page & Media Embedding | Movie Management (Task 3) | ✅ PASS |
-| 17 | Verified Viewer Review Submission | Reviews & Ratings (Task 3) | ✅ PASS |
-| 18 | Dynamic Average Rating Recalculation | Reviews & Ratings (Task 3) | ✅ PASS |
-| 19 | Review Editing & Moderation Reporting | Reviews & Ratings (Task 3) | ✅ PASS |
-| 20 | Similar Movies Recommendation Logic | Recommendations (Task 3) | ✅ PASS |
-| 21 | Multi-Table Data Integrity (M2M) | ORM Schema (Task 3) | ✅ PASS |
-| 22 | Razorpay Order Creation & Seat Lock | Payment Module (Task 4) | ✅ PASS |
-| 23 | Server-Side HMAC-SHA256 Signature Auth | Security Module (Task 4) | ✅ PASS |
-| 24 | Successful Payment & Ticket Dispatch | Payment Module (Task 4) | ✅ PASS |
-| 25 | Duplicate Payment Idempotency Check | Integrity Module (Task 4) | ✅ PASS |
-| 26 | Failed Payment Auto-Seat Release | Seat Engine (Task 4) | ✅ PASS |
-| 27 | User Cancellation Auto-Seat Release | Seat Engine (Task 4) | ✅ PASS |
-| 28 | Asynchronous Webhook Auth & Handling | Webhook Module (Task 4) | ✅ PASS |
-| 29 | Profile Payment Audit Ledger & History | Profile Module (Task 4) | ✅ PASS |
-| 30 | Visual Seat Matrix & Status Indicators | Seat Reservation (Task 5) | ✅ PASS |
-| 31 | 2-Minute Temporary Seat Hold Expiry | Seat Reservation (Task 5) | ✅ PASS |
-| 32 | Modify Seat Selection Pre-Payment | Seat Reservation (Task 5) | ✅ PASS |
-| 33 | Concurrent Seat Hold Race Prevention | Database Locking (Task 5) | ✅ PASS |
-| 34 | Live Seat Availability Polling API | Real-Time Sync (Task 5) | ✅ PASS |
-| 35 | Confirmed Payment Finalization & Zero Hold | Integrity Module (Task 5) | ✅ PASS |
-| 36 | Infinite Redirect & Loop Immunity | Session Security (Auth) | ✅ PASS |
-| 37 | Admin Role-Based Security & Permission Checks | RBAC Module (Task 6) | ✅ PASS |
-| 38 | Real-Time KPIs (Revenue, Trends, Occupancy) | Analytics Engine (Task 6) | ✅ PASS |
-| 39 | Custom Date Presets & Range Filtering | Filter Engine (Task 6) | ✅ PASS |
-| 40 | CSV Export Engine (Revenue, Bookings, Theaters, Cancellations) | Export Module (Task 6) | ✅ PASS |
-| 41 | Peak Booking Hours Aggregation (`ExtractHour`) | Analytics Engine (Task 6) | ✅ PASS |
-| 42 | High-Volume Benchmark (<500ms for 100k records) | Performance (Task 6) | ✅ PASS (2.72ms) |
-| 43 | Database B-Tree Index Optimization | Database Schema (Task 6) | ✅ PASS |
-| 44 | Staff Admin Account Verification (`dheekshith`) | Security & Auth (Task 6) | ✅ PASS |
-| 45 | Head Superuser Verification (`admin`) | Security & Auth (Task 6) | ✅ PASS |
+| 1 | Search Title/Cast/Description (`Kalki`) | Discovery Module (Task 1) | ✅ PASS |
+| 2 | Filter by Genre (`Sci-Fi`, `Action`, etc.) | Discovery Module (Task 1) | ✅ PASS |
+| 3 | Filter by Language (`Telugu`, `English`, etc.) | Discovery Module (Task 1) | ✅ PASS |
+| 4 | Filter by City (`Hyderabad`, `Mumbai`, etc.) | Discovery Module (Task 1) | ✅ PASS |
+| 5 | Filter by Cinema / Theater (`AMB Cinemas`, `PVR`) | Discovery Module (Task 1) | ✅ PASS |
+| 6 | Filter by Release Date / Status (Now Showing / Upcoming) | Discovery Module (Task 1) | ✅ PASS |
+| 7 | Filter by Minimum Rating (`>=8.0`, `>=8.5`) | Discovery Module (Task 1) | ✅ PASS |
+| 8 | Filter by Show Timings (`Morning`, `Evening`, etc.) | Discovery Module (Task 1) | ✅ PASS |
+| 9 | Filter by Ticket Price (`<=200`, `<=350`) | Discovery Module (Task 1) | ✅ PASS |
+| 10 | Multi-Criteria Sorting (Popularity, Release, Rating, Price) | Discovery Module (Task 1) | ✅ PASS |
+| 11 | Dynamic Matching Movies Counter Badge | Discovery Module (Task 1) | ✅ PASS |
+| 12 | Query-Preserving Pagination (6 items / page) | Discovery Module (Task 1) | ✅ PASS |
+| 13 | 'Recommended for You' (Booking History + Recently Viewed) | Discovery Module (Task 1) | ✅ PASS |
+| 14 | PDF Ticket Generation + QR Code | Ticketing Module (Task 2) | ✅ PASS |
+| 15 | Celery Async Task & Auto-Retry | Async Email Module (Task 2) | ✅ PASS |
+| 16 | Download Ticket Endpoint (PDF) | Ticketing Module (Task 2) | ✅ PASS |
+| 17 | Booking Confirmation View | Booking Module (Task 2) | ✅ PASS |
+| 18 | Profile History Download Buttons | Profile Module (Task 2) | ✅ PASS |
+| 19 | Movie Detail Page & Media Embedding | Movie Management (Task 3) | ✅ PASS |
+| 20 | Verified Viewer Review Submission | Reviews & Ratings (Task 3) | ✅ PASS |
+| 21 | Dynamic Average Rating Recalculation | Reviews & Ratings (Task 3) | ✅ PASS |
+| 22 | Review Editing & Moderation Reporting | Reviews & Ratings (Task 3) | ✅ PASS |
+| 23 | Similar Movies Recommendation Logic | Recommendations (Task 3) | ✅ PASS |
+| 24 | Multi-Table Data Integrity (M2M) | ORM Schema (Task 3) | ✅ PASS |
+| 25 | Razorpay Order Creation & Seat Lock | Payment Module (Task 4) | ✅ PASS |
+| 26 | Server-Side HMAC-SHA256 Signature Auth | Security Module (Task 4) | ✅ PASS |
+| 27 | Successful Payment & Ticket Dispatch | Payment Module (Task 4) | ✅ PASS |
+| 28 | Duplicate Payment Idempotency Check | Integrity Module (Task 4) | ✅ PASS |
+| 29 | Failed Payment Auto-Seat Release | Seat Engine (Task 4) | ✅ PASS |
+| 30 | User Cancellation Auto-Seat Release | Seat Engine (Task 4) | ✅ PASS |
+| 31 | Asynchronous Webhook Auth & Handling | Webhook Module (Task 4) | ✅ PASS |
+| 32 | Profile Payment Audit Ledger & History | Profile Module (Task 4) | ✅ PASS |
+| 33 | Visual Seat Matrix & Status Indicators | Seat Reservation (Task 5) | ✅ PASS |
+| 34 | 2-Minute Temporary Seat Hold Expiry | Seat Reservation (Task 5) | ✅ PASS |
+| 35 | Modify Seat Selection Pre-Payment | Seat Reservation (Task 5) | ✅ PASS |
+| 36 | Concurrent Seat Hold Race Prevention | Database Locking (Task 5) | ✅ PASS |
+| 37 | Live Seat Availability Polling API | Real-Time Sync (Task 5) | ✅ PASS |
+| 38 | Confirmed Payment Finalization & Zero Hold | Integrity Module (Task 5) | ✅ PASS |
+| 39 | Infinite Redirect & Loop Immunity | Session Security (Auth) | ✅ PASS |
+| 40 | Admin Role-Based Security & Permission Checks | RBAC Module (Task 6) | ✅ PASS |
+| 41 | Real-Time KPIs (Revenue, Trends, Occupancy) | Analytics Engine (Task 6) | ✅ PASS |
+| 42 | Custom Date Presets & Range Filtering | Filter Engine (Task 6) | ✅ PASS |
+| 43 | CSV Export Engine (Revenue, Bookings, Theaters, Cancellations) | Export Module (Task 6) | ✅ PASS |
+| 44 | Peak Booking Hours Aggregation (`ExtractHour`) | Analytics Engine (Task 6) | ✅ PASS |
+| 45 | High-Volume Benchmark (<500ms for 100k records) | Performance (Task 6) | ✅ PASS (2.72ms) |
+| 46 | Database B-Tree Index Optimization | Database Schema (Task 6) | ✅ PASS |
+| 47 | Staff Admin Account Verification (`dheekshith`) | Security & Auth (Task 6) | ✅ PASS |
+| 48 | Head Superuser Verification (`admin`) | Security & Auth (Task 6) | ✅ PASS |
 
 ---
 
@@ -320,8 +323,10 @@ cd "d:\Intership project\django-bookmyshow-clone"
 # 3. Apply all database migrations
 python manage.py migrate
 
-# 4. (Optional) Run the complete Task 6 Admin Dashboard test suite
-python "C:\Users\user\.gemini\antigravity-ide\brain\ea32cd7d-9282-4f40-8fe3-cc9b3e93fdc5\scratch\test_task6_admin_dashboard.py"
+# 4. Run automated test suites
+python scratch/master_verification_all_6_tasks.py
+python scratch/test_task1_movie_discovery.py
+python scratch/test_task6_admin_dashboard.py
 
 # 5. Start local development server
 python manage.py runserver 127.0.0.1:8000

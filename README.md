@@ -135,6 +135,9 @@ Comprehensive automated test suites covering all 6 tasks are included under `scr
 # Run unified 6-task master verification test
 python scratch/master_verification_all_6_tasks.py
 
+# Run Task 1 Movie Discovery & Recommendations test
+python scratch/test_task1_movie_discovery.py
+
 # Run comprehensive end-to-end user feature test
 python scratch/test_all_features_e2e.py
 
