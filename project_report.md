@@ -323,13 +323,13 @@ cd "d:\Intership project\django-bookmyshow-clone"
 python manage.py migrate
 
 # 4. Run automated test suites
-python scratch/master_verification_all_6_tasks.py
-python scratch/test_task1_movie_discovery.py
-python scratch/test_task2_ticket_generation.py
-python scratch/test_task3_movie_management.py
-python scratch/test_task4_payment.py
-python scratch/test_task5_smart_reservation_comprehensive.py
-python scratch/test_task6_admin_dashboard.py
+python tests/master_verification_all_6_tasks.py
+python tests/test_task1_movie_discovery.py
+python tests/test_task2_ticket_generation.py
+python tests/test_task3_movie_management.py
+python tests/test_task4_payment.py
+python tests/test_task5_smart_reservation_comprehensive.py
+python tests/test_task6_admin_dashboard.py
 
 # 5. Start local development server
 python manage.py runserver 127.0.0.1:8000

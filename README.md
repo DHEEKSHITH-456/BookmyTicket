@@ -128,32 +128,32 @@ Open your browser and navigate to:
 
 ## 🧪 Running Verification Test Suites
 
-Comprehensive automated test suites covering all 6 tasks are included under `scratch/`:
+Comprehensive automated test suites covering all 6 tasks are included under `tests/`:
 
 ```bash
 # Run unified 6-task master verification test
-python scratch/master_verification_all_6_tasks.py
+python tests/master_verification_all_6_tasks.py
 
 # Run Task 1 Movie Discovery & Recommendations test
-python scratch/test_task1_movie_discovery.py
+python tests/test_task1_movie_discovery.py
 
 # Run Task 2 Automated Ticket Generation & Celery Email test
-python scratch/test_task2_ticket_generation.py
+python tests/test_task2_ticket_generation.py
 
 # Run Task 3 Movie Management, Trailers & Reviews test
-python scratch/test_task3_movie_management.py
+python tests/test_task3_movie_management.py
 
 # Run comprehensive end-to-end user feature test
-python scratch/test_all_features_e2e.py
+python tests/test_all_features_e2e.py
 
 # Run Task 4 Payment Workflow verification
-python scratch/test_task4_payment.py
+python tests/test_task4_payment.py
 
 # Run Task 5 Smart Seat Reservation & Concurrency test
-python scratch/test_task5_smart_reservation_comprehensive.py
+python tests/test_task5_smart_reservation_comprehensive.py
 
 # Run Task 6 Admin Dashboard, Indexing & Benchmark test
-python scratch/test_task6_admin_dashboard.py
+python tests/test_task6_admin_dashboard.py
 ```
 
 ---
