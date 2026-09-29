@@ -3,6 +3,31 @@
 {% block title %}Discover Movies — Search, Filters & Recommendations | BookMySeat{% endblock %}
 
 {% block content %}
+<style>
+    .movie-card-custom {
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+        background: #fff;
+    }
+    .movie-card-custom:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 24px rgba(0,0,0,0.12) !important;
+    }
+    .movie-card-custom:hover .movie-poster-img {
+        transform: scale(1.04);
+    }
+    .movie-poster-wrap {
+        position: relative;
+        height: 380px;
+        overflow: hidden;
+        background-color: #1a1a2e;
+    }
+    .movie-poster-img {
+        object-fit: cover;
+        width: 100%;
+        height: 100%;
+        transition: transform 0.35s ease;
+    }
+</style>
 <div class="container-fluid px-lg-5 py-4">
 
     <!-- ========== HERO SEARCH BAR ========== -->
@@ -357,23 +382,27 @@
                 <div class="col-lg-4 col-md-6 col-sm-6 mb-4">
                     <div class="card h-100 border-0 shadow-sm rounded-lg overflow-hidden movie-card-custom">
                         <!-- Poster Wrap -->
+                        <div class="movie-poster-wrap">
                             {% if movie.image %}
-                            <img src="{{ movie.image.url }}" class="card-img-top w-100 h-100 movie-poster-img" alt="{{ movie.name }}" style="object-fit: cover;">
+                            <a href="{% url 'movie_detail' movie.id %}" class="d-block w-100 h-100">
+                                <img src="{{ movie.image.url }}" class="card-img-top w-100 h-100 movie-poster-img" alt="{{ movie.name }}">
+                            </a>
                             {% else %}
-                            <div class="w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-dark text-white p-3 text-center">
+                            <a href="{% url 'movie_detail' movie.id %}" class="w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-dark text-white p-3 text-center text-decoration-none">
                                 <i class="fas fa-film fa-3x mb-2 text-danger"></i>
                                 <span class="small font-weight-bold">{{ movie.name }}</span>
-                            </div>
+                            </a>
                             {% endif %}
+                            
                             <!-- Rating Badge -->
-                            <div class="position-absolute" style="top: 12px; left: 12px;">
+                            <div class="position-absolute" style="top: 12px; left: 12px; pointer-events: none;">
                                 <span class="badge badge-warning px-2 py-1 shadow" style="background:#f5c518; color:#000; font-weight:700; font-size:0.85rem;">
                                     ★ {{ movie.rating }}/10
                                 </span>
                             </div>
 
                             <!-- Language Badge -->
-                            <div class="position-absolute" style="top: 12px; right: 12px;">
+                            <div class="position-absolute" style="top: 12px; right: 12px; pointer-events: none;">
                                 <span class="badge badge-dark px-2 py-1 shadow text-uppercase" style="background: rgba(0,0,0,0.75); font-size:0.75rem;">
                                     {{ movie.language|default:"English" }}
                                 </span>
@@ -381,7 +410,7 @@
 
                             <!-- Duration / Release overlay -->
                             {% if movie.duration %}
-                            <div class="position-absolute text-white small px-2 py-1" style="bottom: 8px; right: 8px; background: rgba(0,0,0,0.7); border-radius: 4px; font-size:0.75rem;">
+                            <div class="position-absolute text-white small px-2 py-1" style="bottom: 8px; right: 8px; background: rgba(0,0,0,0.75); border-radius: 4px; font-size:0.75rem; pointer-events: none;">
                                 <i class="far fa-clock mr-1"></i>{{ movie.duration }}m
                             </div>
                             {% endif %}
@@ -390,9 +419,11 @@
                         <!-- Card Body -->
                         <div class="card-body p-3 d-flex flex-column justify-content-between">
                             <div>
-                                <h5 class="card-title font-weight-bold mb-1 text-truncate" title="{{ movie.name }}" style="color:#1a1a2e;">
-                                    {{ movie.name }}
-                                </h5>
+                                <a href="{% url 'movie_detail' movie.id %}" class="text-decoration-none">
+                                    <h5 class="card-title font-weight-bold mb-1 text-truncate" title="{{ movie.name }}" style="color:#1a1a2e;">
+                                        {{ movie.name }}
+                                    </h5>
+                                </a>
                                 
                                 <!-- Genre Tags -->
                                 <p class="small text-muted mb-2 text-truncate">
