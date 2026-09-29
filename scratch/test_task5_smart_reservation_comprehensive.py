@@ -201,6 +201,14 @@ assert len(dup_bookings) == 1
 assert Booking.objects.filter(seat=s6).count() == 1, "Duplicate bookings must NEVER be created"
 print(f"[PASS] Confirmed payment finalized booking with 0 hold remnants and strict idempotency")
 
+# Cleanup test fixtures
+Booking.objects.filter(theater=theater).delete()
+PaymentTransaction.objects.filter(theater=theater).delete()
+Seat.objects.filter(theater=theater).delete()
+theater.delete()
+alice.delete()
+bob.delete()
+
 print("\n" + "=" * 70)
 print("ALL 7 TASK 5 REQUIREMENTS FULLY VERIFIED & PASSING 100%!")
 print("=" * 70)

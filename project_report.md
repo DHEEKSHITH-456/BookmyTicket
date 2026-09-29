@@ -328,6 +328,8 @@ python scratch/master_verification_all_6_tasks.py
 python scratch/test_task1_movie_discovery.py
 python scratch/test_task2_ticket_generation.py
 python scratch/test_task3_movie_management.py
+python scratch/test_task4_payment.py
+python scratch/test_task5_smart_reservation_comprehensive.py
 python scratch/test_task6_admin_dashboard.py
 
 # 5. Start local development server
