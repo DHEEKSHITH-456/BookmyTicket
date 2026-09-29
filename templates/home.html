@@ -99,7 +99,14 @@
       <div class="col-lg-3 col-md-6 col-sm-6 mb-3">
           <div class="card h-100 shadow-sm border-0 rounded-lg overflow-hidden">
               <a href="{% url 'theater_list' movie.id %}" class="position-relative d-block">
+                  {% if movie.image %}
                   <img src="{{ movie.image.url }}" class="card-img-top" alt="{{ movie.name }}" style="height: 280px; object-fit: cover;">
+                  {% else %}
+                  <div class="card-img-top d-flex flex-column align-items-center justify-content-center bg-dark text-white p-3 text-center" style="height: 280px;">
+                      <i class="fas fa-film fa-3x mb-2 text-danger"></i>
+                      <span class="small font-weight-bold">{{ movie.name }}</span>
+                  </div>
+                  {% endif %}
                   <span class="badge badge-warning position-absolute" style="top: 10px; left: 10px; font-weight:700; background:#f5c518; color:#000;">
                       ★ {{ movie.rating }}/10
                   </span>
@@ -154,7 +161,14 @@
       <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
           <div class="card h-100 shadow-sm border-0 rounded-lg overflow-hidden">
               <a href="{% url 'theater_list' movie.id %}" class="position-relative d-block">
+                  {% if movie.image %}
                   <img src="{{ movie.image.url }}" class="card-img-top" alt="{{ movie.name }}" style="height: 260px; object-fit: cover;">
+                  {% else %}
+                  <div class="card-img-top d-flex flex-column align-items-center justify-content-center bg-dark text-white p-3 text-center" style="height: 260px;">
+                      <i class="fas fa-film fa-3x mb-2 text-danger"></i>
+                      <span class="small font-weight-bold">{{ movie.name }}</span>
+                  </div>
+                  {% endif %}
                   <span class="badge badge-warning position-absolute" style="top: 8px; left: 8px; font-weight:700; background:#f5c518; color:#000;">
                       ★ {{ movie.rating }}
                   </span>

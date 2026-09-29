@@ -135,8 +135,10 @@ def generate_ticket_pdf(bookings, user):
     elements.append(Paragraph('THEATER &amp; SHOWTIME', style_section))
     show_date = theater.time.strftime('%A, %d %B %Y')
     show_time = theater.time.strftime('%I:%M %p')
+    screen_name = getattr(theater, 'screen', None) or 'Screen 1 (Audi 1 - Dolby Atmos)'
     theater_data = [
         [Paragraph('Theater', style_label), Paragraph(theater.name, style_value)],
+        [Paragraph('Screen', style_label), Paragraph(screen_name, style_value)],
         [Paragraph('City', style_label), Paragraph(theater.city, style_value)],
         [Paragraph('Location', style_label), Paragraph(theater.location or theater.city, style_value)],
         [Paragraph('Show Date', style_label), Paragraph(show_date, style_value)],
@@ -154,13 +156,14 @@ def generate_ticket_pdf(bookings, user):
 
     # ─── BOOKING INFO + QR CODE ───
     elements.append(Paragraph('BOOKING INFORMATION', style_section))
-    qr_data = f'BOOKMYSEAT|{booking_id}|{payment_ref}|{movie.name}|{seat_numbers}'
+    qr_data = f'BOOKMYSEAT|{booking_id}|{payment_ref}|{movie.name}|{theater.name}|{screen_name}|{seat_numbers}'
     qr_image = generate_qr_code(qr_data, size=30 * mm)
 
     booking_info_data = [
         [Paragraph('Booking ID', style_label), Paragraph(booking_id[:8].upper(), style_value)],
         [Paragraph('Payment Ref', style_label), Paragraph(payment_ref, style_value)],
         [Paragraph('Seats', style_label), Paragraph(seat_numbers, style_value)],
+        [Paragraph('Screen', style_label), Paragraph(screen_name, style_value)],
         [Paragraph('No. of Tickets', style_label), Paragraph(str(len(bookings)), style_value)],
         [Paragraph('Price / Seat', style_label), Paragraph(f'₹{theater.ticket_price}', style_value)],
         [Paragraph('Total Amount', style_label), Paragraph(f'₹{total_price}', style_value)],

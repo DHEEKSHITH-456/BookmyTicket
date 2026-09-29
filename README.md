@@ -138,6 +138,9 @@ python scratch/master_verification_all_6_tasks.py
 # Run Task 1 Movie Discovery & Recommendations test
 python scratch/test_task1_movie_discovery.py
 
+# Run Task 2 Automated Ticket Generation & Celery Email test
+python scratch/test_task2_ticket_generation.py
+
 # Run comprehensive end-to-end user feature test
 python scratch/test_all_features_e2e.py
 
