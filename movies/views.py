@@ -796,12 +796,24 @@ def movie_detail(request, movie_id):
                 pass
             return redirect('movie_detail', movie_id=movie.id)
 
-    # Similar movies based on shared genres
-    similar_movies = Movie.objects.filter(genres__in=movie.genres.all()).exclude(id=movie.id).distinct().order_by('-popularity')[:4]
-    
-    # Fallback to trending if no similar movies found
+    # Similar movies based on shared genres and languages
+    similar_query = Q()
+    if movie.genres.exists():
+        similar_query |= Q(genres__in=movie.genres.all())
+    if movie.languages.exists():
+        similar_query |= Q(languages__in=movie.languages.all())
+
+    similar_movies = Movie.objects.filter(similar_query).exclude(id=movie.id).distinct().order_by('-popularity', '-rating')[:4]
     if not similar_movies.exists():
         similar_movies = Movie.objects.exclude(id=movie.id).order_by('-rating', '-popularity')[:4]
+
+    # Trending recommendations
+    trending_movies = Movie.objects.exclude(id=movie.id).order_by('-popularity', '-rating')[:4]
+
+    # Recently released recommendations
+    recent_movies = Movie.objects.exclude(id=movie.id).filter(release_date__isnull=False).order_by('-release_date')[:4]
+    if not recent_movies.exists():
+        recent_movies = Movie.objects.exclude(id=movie.id).order_by('-id')[:4]
 
     primary_theater = movie.theaters.order_by('time').first()
 
@@ -812,6 +824,8 @@ def movie_detail(request, movie_id):
         'can_review': can_review,
         'user_review': user_review,
         'similar_movies': similar_movies,
+        'trending_movies': trending_movies,
+        'recent_movies': recent_movies,
         'primary_theater': primary_theater,
     }
     return render(request, 'movies/movie_detail.html', context)

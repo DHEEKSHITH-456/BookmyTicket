@@ -5,6 +5,7 @@ from . import dashboard_views
 urlpatterns = [
     path('', views.movie_list, name='movie_list'),
     path('<int:movie_id>/', views.movie_detail, name='movie_detail'),
+    path('movie/<int:movie_id>/', views.movie_detail, name='movie_detail_alias'),
     path('<int:movie_id>/theaters/', views.theater_list, name='theater_list'),
     path('theater/<int:theater_id>/seats/book/', views.book_seats, name='book_seats'),
     path('theater/<int:theater_id>/seats/live/', views.live_seat_status, name='live_seat_status'),

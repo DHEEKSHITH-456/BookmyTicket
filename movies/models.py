@@ -40,6 +40,22 @@ class Movie(models.Model):
     popularity = models.IntegerField(default=100, help_text="Popularity / Votes count")
     description = models.TextField(blank=True, null=True)
 
+    @property
+    def youtube_embed_url(self):
+        """Converts any standard YouTube or shortened link into a privacy-enhanced embed URL."""
+        if not self.trailer_url:
+            return None
+        url = self.trailer_url.strip()
+        if 'youtu.be/' in url:
+            video_id = url.split('youtu.be/')[-1].split('?')[0]
+            return f'https://www.youtube-nocookie.com/embed/{video_id}'
+        elif 'watch?v=' in url:
+            video_id = url.split('watch?v=')[-1].split('&')[0]
+            return f'https://www.youtube-nocookie.com/embed/{video_id}'
+        elif '/embed/' in url:
+            return url.replace('www.youtube.com/embed/', 'www.youtube-nocookie.com/embed/')
+        return url
+
     def __str__(self):
         return self.name
 
