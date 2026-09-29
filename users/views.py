@@ -11,13 +11,37 @@ from movies.views import get_recommended_movies
 
 
 def home(request):
-    movies = list(Movie.objects.filter(theaters__isnull=False).distinct().order_by('-popularity'))
-    for m in movies:
+    all_movies = list(Movie.objects.prefetch_related('genres', 'languages', 'theaters').all().order_by('-popularity'))
+    for m in all_movies:
         m.primary_theater = m.theaters.order_by('time').first()
+        genres = [g.name for g in m.genres.all()]
+        m.genre_str = ', '.join(genres[:3]) if genres else 'Action'
+        langs = [l.name for l in m.languages.all()]
+        m.lang_str = ', '.join(langs[:2]) if langs else 'English'
+        m.votes_count = f"{max(14, int(m.popularity * 2.4))}K"
+
     recommended_movies = get_recommended_movies(request)
+    for m in recommended_movies:
+        m.primary_theater = m.theaters.order_by('time').first()
+        genres = [g.name for g in m.genres.all()]
+        m.genre_str = ', '.join(genres[:3]) if genres else 'Action'
+        langs = [l.name for l in m.languages.all()]
+        m.lang_str = ', '.join(langs[:2]) if langs else 'English'
+        m.votes_count = f"{max(14, int(m.popularity * 2.4))}K"
+
+    now_showing = [m for m in all_movies if m.id in [6, 14, 13, 16, 11, 10, 15, 12, 18, 17, 19, 20]]
+    if not now_showing:
+        now_showing = all_movies[:10]
+
+    top_rated = sorted(all_movies, key=lambda x: x.rating, reverse=True)[:10]
+    upcoming = [m for m in all_movies if m.id in [2, 3, 4, 5, 22]] or all_movies[-5:]
+
     return render(request, 'home.html', {
-        'movies': movies,
-        'recommended_movies': recommended_movies,
+        'movies': all_movies,
+        'recommended_movies': recommended_movies[:8],
+        'now_showing': now_showing[:10],
+        'top_rated': top_rated[:10],
+        'upcoming': upcoming[:6],
     })
 
 
