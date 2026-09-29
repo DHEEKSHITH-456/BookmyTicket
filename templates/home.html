@@ -46,26 +46,34 @@
         overflow: hidden;
         box-shadow: 0 4px 20px rgba(0,0,0,0.12);
         margin: 20px 0 28px;
+        background-color: #11141c;
     }
     .bms-carousel-slide {
-        height: 320px;
+        height: 340px;
         background-size: cover;
         background-position: center;
         position: relative;
         display: flex;
-        align-items: flex-end;
-        padding: 40px;
+        align-items: center;
+        padding: 30px 50px;
+        background-color: #11141c;
     }
     .bms-carousel-overlay {
         position: absolute;
         inset: 0;
-        background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.85) 100%);
+        background: linear-gradient(90deg, #11141c 0%, rgba(17,20,28,0.92) 55%, rgba(17,20,28,0.55) 100%);
     }
-    .bms-carousel-caption {
+    .bms-carousel-content {
         position: relative;
         z-index: 2;
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .bms-carousel-caption {
         color: #ffffff;
-        max-width: 650px;
+        max-width: 620px;
     }
 
     /* Section Headings */
@@ -290,68 +298,38 @@
     <!-- ========================================================== -->
     <div id="bmsHeroCarousel" class="carousel slide bms-carousel" data-ride="carousel" data-interval="4500">
         <ol class="carousel-indicators">
-            <li data-target="#bmsHeroCarousel" data-slide-to="0" class="active"></li>
-            <li data-target="#bmsHeroCarousel" data-slide-to="1"></li>
-            <li data-target="#bmsHeroCarousel" data-slide-to="2"></li>
-            <li data-target="#bmsHeroCarousel" data-slide-to="3"></li>
+            {% for m in featured_movies %}
+            <li data-target="#bmsHeroCarousel" data-slide-to="{{ forloop.counter0 }}" class="{% if forloop.first %}active{% endif %}"></li>
+            {% endfor %}
         </ol>
         <div class="carousel-inner">
-            <!-- Slide 1: Kalki 2898 AD -->
-            <div class="carousel-item active">
-                <div class="bms-carousel-slide" style="background-image: url('https://image.tmdb.org/t/p/w1280/g4uL710V105rD1g0V6Vl8C93vCg.jpg');">
+            {% for m in featured_movies %}
+            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                <div class="bms-carousel-slide" style="background: linear-gradient(90deg, #11141c 0%, rgba(17,20,28,0.92) 55%, rgba(17,20,28,0.6) 100%), url('{{ m.image.url }}') center/cover no-repeat;">
                     <div class="bms-carousel-overlay"></div>
-                    <div class="bms-carousel-caption">
-                        <span class="badge badge-danger px-3 py-1 font-weight-bold mb-2" style="background-color: var(--bms-red);">BLOCKBUSTER HIT</span>
-                        <h2 class="font-weight-bold text-white mb-2">Kalki 2898 AD</h2>
-                        <p class="small text-light mb-3">Starring Prabhas, Amitabh Bachchan & Deepika Padukone. Epic sci-fi adventure running across prime multiplexes.</p>
-                        <a href="{% url 'theater_list' 6 %}" class="btn btn-danger font-weight-bold px-4 py-2 rounded-pill shadow" style="background-color: var(--bms-red); border:none;">
-                            <i class="fas fa-ticket-alt mr-2"></i>Book Tickets Now
-                        </a>
+                    <div class="bms-carousel-content">
+                        <div class="bms-carousel-caption">
+                            <span class="badge badge-danger px-3 py-1 font-weight-bold mb-2" style="background-color: var(--bms-red);">BLOCKBUSTER HIT</span>
+                            <h2 class="font-weight-bold text-white mb-2">{{ m.name }}</h2>
+                            <p class="small text-light mb-2" style="max-width: 550px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ m.description }}</p>
+                            <div class="mb-3 text-light small">
+                                <span class="badge badge-warning text-dark font-weight-bold mr-2"><i class="fas fa-star mr-1"></i>{{ m.rating|floatformat:1 }}/10</span>
+                                <span class="mr-2">{{ m.genre_str }}</span> &bull;
+                                <span class="ml-2">{{ m.lang_str }}</span>
+                            </div>
+                            <a href="{% if m.primary_theater %}{% url 'theater_list' m.id %}{% else %}{% url 'movie_list' %}{% endif %}" class="btn btn-danger font-weight-bold px-4 py-2 rounded-pill shadow" style="background-color: var(--bms-red); border:none;">
+                                <i class="fas fa-ticket-alt mr-2"></i>Book Tickets Now
+                            </a>
+                        </div>
+                        <div class="d-none d-md-block flex-shrink-0 ml-4">
+                            <a href="{% if m.primary_theater %}{% url 'theater_list' m.id %}{% else %}{% url 'movie_list' %}{% endif %}">
+                                <img src="{{ m.image.url }}" alt="{{ m.name }}" style="height: 270px; width: 180px; object-fit: cover; border-radius: 10px; box-shadow: 0 12px 35px rgba(0,0,0,0.85); border: 2px solid rgba(255,255,255,0.18); transition: transform 0.3s ease;">
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
-            <!-- Slide 2: Deadpool & Wolverine -->
-            <div class="carousel-item">
-                <div class="bms-carousel-slide" style="background-image: url('https://image.tmdb.org/t/p/w1280/by8z9Fe8y7p4jo2YlW2SZDnptyT.jpg');">
-                    <div class="bms-carousel-overlay"></div>
-                    <div class="bms-carousel-caption">
-                        <span class="badge badge-warning text-dark px-3 py-1 font-weight-bold mb-2">ACTION COMEDY</span>
-                        <h2 class="font-weight-bold text-white mb-2">Deadpool & Wolverine</h2>
-                        <p class="small text-light mb-3">Marvel Studios' ultimate team-up in IMAX 3D, 4DX, and Dolby Atmos screens nationwide.</p>
-                        <a href="{% url 'theater_list' 14 %}" class="btn btn-danger font-weight-bold px-4 py-2 rounded-pill shadow" style="background-color: var(--bms-red); border:none;">
-                            <i class="fas fa-ticket-alt mr-2"></i>Book Tickets Now
-                        </a>
-                    </div>
-                </div>
-            </div>
-            <!-- Slide 3: Gladiator II -->
-            <div class="carousel-item">
-                <div class="bms-carousel-slide" style="background-image: url('https://image.tmdb.org/t/p/w1280/2cxhvwyEwRlysAmRH4iodkvo0z5.jpg');">
-                    <div class="bms-carousel-overlay"></div>
-                    <div class="bms-carousel-caption">
-                        <span class="badge badge-info px-3 py-1 font-weight-bold mb-2">NOW PLAYING</span>
-                        <h2 class="font-weight-bold text-white mb-2">Gladiator II</h2>
-                        <p class="small text-light mb-3">Directed by Ridley Scott. Return to the Colosseum in an epic tale of vengeance and glory.</p>
-                        <a href="{% url 'theater_list' 2 %}" class="btn btn-danger font-weight-bold px-4 py-2 rounded-pill shadow" style="background-color: var(--bms-red); border:none;">
-                            <i class="fas fa-ticket-alt mr-2"></i>Book Tickets Now
-                        </a>
-                    </div>
-                </div>
-            </div>
-            <!-- Slide 4: Wicked -->
-            <div class="carousel-item">
-                <div class="bms-carousel-slide" style="background-image: url('https://image.tmdb.org/t/p/w1280/xDGbZ0JJ3mYaGKy4Nzd9Kph6M9L.jpg');">
-                    <div class="bms-carousel-overlay"></div>
-                    <div class="bms-carousel-caption">
-                        <span class="badge badge-success px-3 py-1 font-weight-bold mb-2">GLOBAL SENSATION</span>
-                        <h2 class="font-weight-bold text-white mb-2">Wicked: Part I</h2>
-                        <p class="small text-light mb-3">The untold story of the Witches of Oz starring Cynthia Erivo and Ariana Grande.</p>
-                        <a href="{% url 'theater_list' 3 %}" class="btn btn-danger font-weight-bold px-4 py-2 rounded-pill shadow" style="background-color: var(--bms-red); border:none;">
-                            <i class="fas fa-ticket-alt mr-2"></i>Book Tickets Now
-                        </a>
-                    </div>
-                </div>
-            </div>
+            {% endfor %}
         </div>
         <a class="carousel-control-prev" href="#bmsHeroCarousel" role="button" data-slide="prev">
             <span class="carousel-control-prev-icon" aria-hidden="true"></span>

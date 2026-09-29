@@ -35,9 +35,11 @@ def home(request):
 
     top_rated = sorted(all_movies, key=lambda x: x.rating, reverse=True)[:10]
     upcoming = [m for m in all_movies if m.id in [2, 3, 4, 5, 22]] or all_movies[-5:]
+    featured_movies = [m for m in all_movies if m.id in [6, 14, 2, 3, 4]] or all_movies[:5]
 
     return render(request, 'home.html', {
         'movies': all_movies,
+        'featured_movies': featured_movies,
         'recommended_movies': recommended_movies[:8],
         'now_showing': now_showing[:10],
         'top_rated': top_rated[:10],
