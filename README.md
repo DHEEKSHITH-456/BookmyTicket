@@ -1,12 +1,15 @@
-# 🎬 BookMySeat — Online Movie Ticket Booking Platform
+# BookMySeat — Online Movie Ticket Booking Platform
 
-**BookMySeat** is an enterprise-grade full-stack cinema ticketing, movie discovery, and real-time business intelligence web platform built using **Python** and **Django**. It provides an intuitive, high-performance experience for discovering movies, exploring showtimes across cinema multiplexes, selecting seats interactively with 2-minute temporary reservation holds, secure payment workflows via Razorpay, automated e-ticket confirmations with QR codes, and a comprehensive real-time executive analytics dashboard.
+**BookMySeat** is a full-stack movie ticket booking web application built using **Python** and **Django** as part of the Full Stack Development Internship. The application provides an end-to-end cinema ticketing experience featuring multi-criteria movie discovery, smart seat reservation with live availability and 2-minute hold timers, secure payment workflows via Razorpay, automated PDF e-ticket generation with scannable QR codes, verified movie reviews, and a real-time admin analytics dashboard.
+
+**Developer / Student:** Dheekshith  
+**GitHub Repository:** [https://github.com/DHEEKSHITH-456/BookmyTicket](https://github.com/DHEEKSHITH-456/BookmyTicket)
 
 ---
 
 ## 🔑 Administrative & Evaluator Credentials
 
-As required for evaluation and auditing, pre-configured accounts are provided below:
+As required by the project guidelines for evaluation, pre-configured test accounts are provided below:
 
 | Role | Username | Password | Email | Access Permissions |
 |---|---|---|---|---|
@@ -32,8 +35,8 @@ As required for evaluation and auditing, pre-configured accounts are provided be
 - **Dynamic Counters & Pagination**: Live matching movie counts and query-preserving pagination.
 - **Personalized "Recommended for You" Engine**: Triple-tier recommendation strategy based on user booking history, recently viewed movies in session, and trending blockbusters.
 
-### 📄 Task 2: Automated Ticket Generation & Async Delivery
-- **Cinema-Grade PDF Tickets**: High-quality A4 e-tickets generated via **ReportLab** with cinema branding, showtime details, seat assignments, and pricing breakdowns.
+### 📄 Task 2: Automated Ticket Generation & Async Email Delivery
+- **Automated PDF E-Ticket Generation**: Clean A4 e-tickets generated via **ReportLab** with cinema branding, showtime details, seat assignments, and pricing breakdowns.
 - **Scannable QR Codes**: High-contrast gate verification code formatted as `BOOKMYSEAT|<UUID>|<OrderRef>|<Movie>|<Seats>`.
 - **Asynchronous Email Processing**: Non-blocking **Celery** background worker with exponential backoff retry policies (`max_retries >= 3`).
 - **Post-Booking Confirmation & On-Demand Download**: Dedicated confirmation screen and persistent `/movies/booking/<uuid>/download-ticket/` endpoint in user profile.
@@ -54,7 +57,7 @@ As required for evaluation and auditing, pre-configured accounts are provided be
 - **Atomic Confirmation**: Database transactions with `select_for_update()` confirm bookings only after successful payment verification.
 - **Automatic Seat Release**: Automatic seat release on payment failure, bank decline, user cancellation, or session timeout.
 - **Duplicate Prevention (Idempotency)**: Retried callbacks and duplicate webhooks never create duplicate bookings or double-charges.
-- **User Profile Audit Ledger**: Tabbed profile interface showing confirmed bookings alongside a full payment audit history.
+- **User Profile & History**: Tabbed profile interface showing confirmed bookings alongside a complete payment transaction history.
 
 ### 🪑 Task 5: Smart Seat Reservation with Live Availability
 - **Interactive Visual Seat Matrix**: Categorized grid with clear status indicators:
@@ -67,14 +70,14 @@ As required for evaluation and auditing, pre-configured accounts are provided be
 - **Concurrency & Race Condition Prevention**: Database transactions with `select_for_update()` ensure atomic seat reservation; multiple simultaneous booking attempts never result in duplicate reservations.
 - **Live Availability Polling API**: `/movies/theater/<id>/seats/live/` powers real-time UI synchronization without requiring page refreshes.
 
-### 📊 Task 6: Comprehensive Admin Dashboard & Business Intelligence
+### 📊 Task 6: Comprehensive Admin Dashboard & Business Insights
 - **Role-Based Security**: Protected by `@user_passes_test(is_admin_user)` restricting access to authenticated users where `is_staff=True` or `is_superuser=True`.
-- **Real-Time KPIs**: Total gross revenue (daily, weekly, monthly, yearly, custom range), booking volume, Average Ticket Value (ATV), and cancellation/refund percentages.
+- **Key Revenue & Booking Metrics**: Total gross revenue (daily, weekly, monthly, yearly, custom range), booking volume, Average Ticket Value (ATV), and cancellation and refund statistics.
 - **Interactive Chart.js Visualizations**: Dual-axis daily trend line chart, order health donut chart, 24-hour peak hours distribution (`ExtractHour`), and user acquisition growth curves.
 - **Occupancy & Leaderboards**: Per-theater occupancy percentages (`booked_seats / total_seats * 100`), top-performing theaters, and most-booked movies.
 - **Date Presets & Custom Date Picker**: Quick filters (`Today`, `7 Days`, `30 Days`, `This Month`, `This Year`, `All Time`) + custom date ranges.
 - **CSV Export Engine**: Instant downloadable spreadsheets for `revenue`, `bookings`, `theaters`, and `cancellations`.
-- **High-Volume Indexing & Benchmark**: Composite B-Tree indexes added in migration `0008`. ORM aggregations execute in **sub-5 ms** with zero Python-side record loading, performing efficiently with 100,000+ bookings.
+- **Database Indexing & Query Optimization (100k+ records)**: Composite B-Tree indexes added in migration `0008`. ORM aggregations execute in **sub-5 ms** with zero Python-side record loading, performing efficiently with 100,000+ bookings.
 
 ---
 

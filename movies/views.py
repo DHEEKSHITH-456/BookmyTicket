@@ -24,9 +24,9 @@ from .payment_service import (
 import uuid
 
 
-# ════════════════════════════════════════════════
+# ================================================
 #  TASK 1: Recommendation Engine
-# ════════════════════════════════════════════════
+# ================================================
 
 def get_recommended_movies(request, current_movie_id=None):
     """
@@ -106,9 +106,9 @@ def get_recommended_movies(request, current_movie_id=None):
 
 
 
-# ════════════════════════════════════════════════
+# ================================================
 #  TASK 1: Movie Discovery with Search & Filters
-# ════════════════════════════════════════════════
+# ================================================
 
 def movie_list(request):
     """
@@ -273,10 +273,10 @@ def theater_list(request, movie_id):
     })
 
 
-# ════════════════════════════════════════════════
-# ════════════════════════════════════════════════
+# ================================================
+# ================================================
 #  TASK 5: Smart Seat Reservation with Live Availability
-# ════════════════════════════════════════════════
+# ================================================
 
 def live_seat_status(request, theater_id):
     """
@@ -447,9 +447,9 @@ def modify_seats(request, order_id):
     return redirect('book_seats', theater_id=theater_id)
 
 
-# ════════════════════════════════════════════════
+# ================================================
 #  TASK 4: Payment Workflow & Verification Views
-# ════════════════════════════════════════════════
+# ================================================
 
 @login_required(login_url='/login/')
 def payment_checkout(request, order_id):
@@ -716,9 +716,9 @@ def download_ticket(request, booking_id):
     )
 
 
-# ════════════════════════════════════════════════
+# ================================================
 #  TASK 3: Movie Details, Trailer, Reviews
-# ════════════════════════════════════════════════
+# ================================================
 
 def update_movie_rating(movie):
     """Recalculate and update the movie rating based on all reviews."""

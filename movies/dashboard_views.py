@@ -87,9 +87,9 @@ def admin_dashboard(request):
 
     start_dt, end_dt, start_date_str, end_date_str, preset = get_date_range(request)
 
-    # ══════════════════════════════════════════════════════════
+    # ==========================================================
     #  1. TOTAL REVENUE (Daily, Weekly, Monthly, Yearly, Custom)
-    # ══════════════════════════════════════════════════════════
+    # ==========================================================
     success_txns = PaymentTransaction.objects.filter(status=PaymentTransaction.STATUS_SUCCESS)
 
     daily_rev = success_txns.filter(created_at__date=today).aggregate(
@@ -119,9 +119,9 @@ def admin_dashboard(request):
     period_bookings_count = Booking.objects.filter(booked_at__range=(start_dt, end_dt)).count()
     all_time_bookings_count = Booking.objects.count()
 
-    # ══════════════════════════════════════════════════════════
+    # ==========================================================
     #  2. BOOKING & REVENUE TRENDS (Database TruncDate)
-    # ══════════════════════════════════════════════════════════
+    # ==========================================================
     trend_qs = (
         Booking.objects.filter(booked_at__range=(start_dt, end_dt))
         .annotate(date=TruncDate('booked_at'))
@@ -142,9 +142,9 @@ def admin_dashboard(request):
         trend_counts.append(item['bookings_count'])
         trend_revenues.append(float(item['revenue']))
 
-    # ══════════════════════════════════════════════════════════
+    # ==========================================================
     #  3. THEATER OCCUPANCY PERCENTAGES (Database Aggregation)
-    # ══════════════════════════════════════════════════════════
+    # ==========================================================
     theaters_qs = (
         Theater.objects.select_related('movie')
         .annotate(
@@ -191,9 +191,9 @@ def admin_dashboard(request):
     theater_occupancies.sort(key=lambda x: x['occupancy_pct'], reverse=True)
     overall_occupancy_pct = round((total_system_booked / total_system_seats * 100), 1) if total_system_seats > 0 else 0.0
 
-    # ══════════════════════════════════════════════════════════
+    # ==========================================================
     #  4. MOST BOOKED MOVIES
-    # ══════════════════════════════════════════════════════════
+    # ==========================================================
     top_movies = list(
         Movie.objects.annotate(
             period_bookings=Count('bookings', filter=Q(bookings__booked_at__range=(start_dt, end_dt))),
@@ -222,9 +222,9 @@ def admin_dashboard(request):
             .order_by('-period_bookings', '-popularity')[:8]
         )
 
-    # ══════════════════════════════════════════════════════════
+    # ==========================================================
     #  5. TOP-PERFORMING THEATERS
-    # ══════════════════════════════════════════════════════════
+    # ==========================================================
     top_theaters = list(
         Theater.objects.select_related('movie')
         .annotate(
@@ -254,9 +254,9 @@ def admin_dashboard(request):
             .order_by('-gross_revenue')[:8]
         )
 
-    # ══════════════════════════════════════════════════════════
+    # ==========================================================
     #  6. PEAK BOOKING HOURS (ExtractHour 0-23)
-    # ══════════════════════════════════════════════════════════
+    # ==========================================================
     hourly_qs = (
         Booking.objects.filter(booked_at__range=(start_dt, end_dt))
         .annotate(hour=ExtractHour('booked_at'))
@@ -277,9 +277,9 @@ def admin_dashboard(request):
     hourly_labels = [f"{h:02d}:00" for h in range(24)]
     hourly_counts = [hourly_map[h] for h in range(24)]
 
-    # ══════════════════════════════════════════════════════════
+    # ==========================================================
     #  7. CANCELLATION AND REFUND STATISTICS
-    # ══════════════════════════════════════════════════════════
+    # ==========================================================
     txn_stats = PaymentTransaction.objects.filter(created_at__range=(start_dt, end_dt)).aggregate(
         total_txns=Count('id'),
         success_count=Count('id', filter=Q(status=PaymentTransaction.STATUS_SUCCESS)),
@@ -301,9 +301,9 @@ def admin_dashboard(request):
     refund_rate = round((refunded_count / total_txns * 100), 1) if total_txns > 0 else 0.0
     success_rate = round((success_count / total_txns * 100), 1) if total_txns > 0 else 0.0
 
-    # ══════════════════════════════════════════════════════════
+    # ==========================================================
     #  8. USER GROWTH REPORTS
-    # ══════════════════════════════════════════════════════════
+    # ==========================================================
     total_users_count = User.objects.count()
     new_users_period = User.objects.filter(date_joined__range=(start_dt, end_dt)).count()
     active_booking_users = User.objects.filter(bookings__booked_at__range=(start_dt, end_dt)).distinct().count()

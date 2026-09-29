@@ -313,9 +313,9 @@
     attachCheckboxListeners();
     updateSummary();
 
-    // ══════════════════════════════════════════════════════════
+    // ==========================================================
     //  Live Seat Polling (Every 3 seconds)
-    // ══════════════════════════════════════════════════════════
+    // ==========================================================
     async function pollLiveSeatStatus() {
       try {
         const response = await fetch('/movies/theater/' + theaterId + '/seats/live/');

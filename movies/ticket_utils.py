@@ -98,8 +98,8 @@ def generate_ticket_pdf(bookings, user):
 
     elements = []
 
-    # ─── HEADER ───
-    elements.append(Paragraph('🎬 BookMySeat', style_header))
+    # --- HEADER ---
+    elements.append(Paragraph('BookMySeat', style_header))
     elements.append(Paragraph('Your E-Ticket — Present this at the entrance', style_sub))
 
     divider_data = [[''] * 1]
@@ -110,7 +110,7 @@ def generate_ticket_pdf(bookings, user):
     elements.append(divider)
     elements.append(Spacer(1, 6 * mm))
 
-    # ─── MOVIE DETAILS ───
+    # --- MOVIE DETAILS ---
     elements.append(Paragraph('MOVIE DETAILS', style_section))
     genres_str = ', '.join(g.name for g in movie.genres.all()) if movie.genres.exists() else 'N/A'
     languages_str = ', '.join(l.name for l in movie.languages.all()) if movie.languages.exists() else 'N/A'
@@ -131,7 +131,7 @@ def generate_ticket_pdf(bookings, user):
     elements.append(movie_table)
     elements.append(Spacer(1, 6 * mm))
 
-    # ─── THEATER & SHOWTIME ───
+    # --- THEATER & SHOWTIME ---
     elements.append(Paragraph('THEATER &amp; SHOWTIME', style_section))
     show_date = theater.time.strftime('%A, %d %B %Y')
     show_time = theater.time.strftime('%I:%M %p')
@@ -154,7 +154,7 @@ def generate_ticket_pdf(bookings, user):
     elements.append(theater_table)
     elements.append(Spacer(1, 6 * mm))
 
-    # ─── BOOKING INFO + QR CODE ───
+    # --- BOOKING INFO + QR CODE ---
     elements.append(Paragraph('BOOKING INFORMATION', style_section))
     qr_data = f'BOOKMYSEAT|{booking_id}|{payment_ref}|{movie.name}|{theater.name}|{screen_name}|{seat_numbers}'
     qr_image = generate_qr_code(qr_data, size=30 * mm)
@@ -184,7 +184,7 @@ def generate_ticket_pdf(bookings, user):
     elements.append(combined_table)
     elements.append(Spacer(1, 6 * mm))
 
-    # ─── PATRON INFO ───
+    # --- PATRON INFO ---
     elements.append(Paragraph('PATRON DETAILS', style_section))
     patron_data = [
         [Paragraph('Name', style_label), Paragraph(user.get_full_name() or user.username, style_value)],
@@ -207,7 +207,7 @@ def generate_ticket_pdf(bookings, user):
     elements.append(divider)
     elements.append(Spacer(1, 4 * mm))
 
-    # ─── TERMS & FOOTER ───
+    # --- TERMS & FOOTER ---
     terms = [
         'Please arrive at least 15 minutes before the show time.',
         'This e-ticket is valid for a single entry only.',

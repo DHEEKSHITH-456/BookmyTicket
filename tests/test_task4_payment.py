@@ -52,7 +52,7 @@ if not theater:
         ticket_price=250.0, time=timezone.now() + timedelta(days=2)
     )
 
-# ── TEST 1: SEAT SELECTION & PAYMENT INITIALIZATION (PENDING STATE) ──
+# -- TEST 1: SEAT SELECTION & PAYMENT INITIALIZATION (PENDING STATE) --
 print('\n[1] Testing Seat Selection, Temporary Lock & Razorpay Order Creation...')
 s1, _ = Seat.objects.get_or_create(theater=theater, seat_number='PAY-T1', defaults={'is_booked': False})
 s2, _ = Seat.objects.get_or_create(theater=theater, seat_number='PAY-T2', defaults={'is_booked': False})
@@ -80,7 +80,7 @@ assert (s1.reserved_by == user or s1.is_booked) and (s2.reserved_by == user or s
 assert Booking.objects.filter(seat__in=[s1, s2]).count() == 0, 'Booking created before payment!'
 print('  [PASS] Order initialized, seats temporarily locked in PENDING state, 0 bookings pre-payment.')
 
-# ── TEST 2: CHECKOUT SCREEN RENDERING & SECURITY ──
+# -- TEST 2: CHECKOUT SCREEN RENDERING & SECURITY --
 print('\n[2] Testing Checkout Screen Rendering...')
 res = client.get(checkout_url)
 assert res.status_code == 200
@@ -88,7 +88,7 @@ assert b'Confirm &amp; Pay' in res.content or b'Confirm & Pay' in res.content
 assert b'PAY-T1' in res.content
 print('  [PASS] Checkout view renders with order summary and Razorpay modal integration.')
 
-# ── TEST 3: SERVER-SIDE SIGNATURE VERIFICATION ──
+# -- TEST 3: SERVER-SIDE SIGNATURE VERIFICATION --
 print('\n[3] Testing Server-Side Signature Verification...')
 mock_pay_id = f"pay_test_{uuid.uuid4().hex[:10]}"
 valid_sig = generate_mock_signature(order_id, mock_pay_id)
@@ -96,7 +96,7 @@ assert verify_payment_signature(order_id, mock_pay_id, valid_sig) == True, 'Vali
 assert verify_payment_signature(order_id, mock_pay_id, 'tampered_signature_123') == False, 'Tampered signature accepted!'
 print('  [PASS] Valid signatures accepted; tampered signatures strictly rejected.')
 
-# ── TEST 4: SUCCESSFUL PAYMENT & BOOKING CONFIRMATION ──
+# -- TEST 4: SUCCESSFUL PAYMENT & BOOKING CONFIRMATION --
 print('\n[4] Testing Successful Payment & Confirmation...')
 res = client.post('/movies/payment/verify/', {
     'razorpay_order_id': order_id,
@@ -118,7 +118,7 @@ for b in confirmed_bookings:
     assert b.payment_reference == order_id
 print(f'  [PASS] Payment {order_id} marked SUCCESS; {confirmed_bookings.count()} bookings confirmed.')
 
-# ── TEST 5: IDEMPOTENCY / DUPLICATE PREVENTION ──
+# -- TEST 5: IDEMPOTENCY / DUPLICATE PREVENTION --
 print('\n[5] Testing Idempotency (Duplicate Payment Confirmations)...')
 # Post the same payment confirmation a second time
 res_dup = client.post('/movies/payment/verify/', {
@@ -132,7 +132,7 @@ assert res_dup.status_code == 302
 assert Booking.objects.filter(seat__in=[s1, s2]).count() == 2, 'Duplicate bookings were created!'
 print('  [PASS] Duplicate payment confirmations return cleanly without creating duplicate bookings.')
 
-# ── TEST 6: PAYMENT FAILURE & AUTOMATIC SEAT RELEASE ──
+# -- TEST 6: PAYMENT FAILURE & AUTOMATIC SEAT RELEASE --
 print('\n[6] Testing Payment Failure & Automatic Seat Release...')
 s3, _ = Seat.objects.get_or_create(theater=theater, seat_number='PAY-T3', defaults={'is_booked': False})
 s3.is_booked = False
@@ -165,7 +165,7 @@ assert s3.is_booked == False and s3.reserved_by is None, 'Seat s3 was NOT releas
 assert Booking.objects.filter(seat=s3).count() == 0, 'Booking exists for failed payment!'
 print('  [PASS] Failed payment marked FAILED, diagnostic screen displayed, and reserved seats automatically released.')
 
-# ── TEST 7: PAYMENT CANCELLATION BY USER ──
+# -- TEST 7: PAYMENT CANCELLATION BY USER --
 print('\n[7] Testing Payment Cancellation by User...')
 s4, _ = Seat.objects.get_or_create(theater=theater, seat_number='PAY-T4', defaults={'is_booked': False})
 s4.is_booked = False
@@ -188,7 +188,7 @@ s4.refresh_from_db()
 assert s4.is_booked == False, 'Seat s4 was NOT released after cancellation!'
 print('  [PASS] Cancelled payment marked CANCELLED and reserved seats immediately released.')
 
-# ── TEST 8: SERVER-SIDE WEBHOOK VERIFICATION ──
+# -- TEST 8: SERVER-SIDE WEBHOOK VERIFICATION --
 print('\n[8] Testing Server-Side Webhook Verification...')
 # 1. Test rejection of invalid signature
 invalid_webhook = client.post(
@@ -238,7 +238,7 @@ assert webhook_txn.status == PaymentTransaction.STATUS_SUCCESS
 assert Booking.objects.filter(seat=s5).count() == 1
 print('  Sub-test 8b: Valid Razorpay webhook processed and booking confirmed: PASS')
 
-# ── TEST 9: USER PROFILE PAYMENT & BOOKING HISTORY ──
+# -- TEST 9: USER PROFILE PAYMENT & BOOKING HISTORY --
 print('\n[9] Testing User Profile Payment History...')
 res_profile = client.get('/users/profile/')
 assert res_profile.status_code == 200

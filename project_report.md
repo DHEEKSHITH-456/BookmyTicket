@@ -28,7 +28,7 @@ As required by the project specifications, administrative access credentials for
 
 ## 1. Executive Summary
 
-**BookMySeat** is an enterprise-grade full-stack cinema ticketing web platform built with Django. The application delivers a modern online movie booking experience featuring:
+**BookMySeat** is a full-stack movie ticket booking web platform built using Python and Django as part of the Full Stack Development Internship. The application delivers an end-to-end online cinema ticketing experience featuring:
 1. **Task 1 — Advanced Movie Discovery**: Title/cast search, multi-faceted filtering (genre, language, city, theater, release date, rating, show timings, ticket price), multi-criteria sorting, dynamic matching counter badges, query-preserving pagination, and a personalized *"Recommended for You"* recommendation engine.
 2. **Task 2 — Automated Ticket Generation & Email Confirmation**: Automatic generation of cinema-grade PDF tickets with scannable QR codes for entrance verification, non-blocking asynchronous email delivery powered by Celery with automated retry policies (exponential backoff), post-booking confirmation screens, and on-demand PDF ticket downloading from user booking history.
 3. **Task 3 — Movie Management with Trailers, Reviews & Ratings**: Rich movie detail pages with responsive YouTube trailer embeds, still image galleries, verified viewer reviews, dynamic 1-10 star rating aggregation, and content-based recommendation logic.

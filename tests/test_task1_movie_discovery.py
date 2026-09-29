@@ -27,7 +27,7 @@ user.set_password('pass123')
 user.save()
 client.force_login(user)
 
-# ── 1. TITLE SEARCH ──
+# -- 1. TITLE SEARCH --
 print("\n[1] Testing Search by Movie Title...")
 res = client.get('/movies/?search=avengers')
 assert res.status_code == 200, f"Expected 200, got {res.status_code}"
@@ -35,7 +35,7 @@ assert b'avengers' in res.content.lower() or 'avengers' in res.context['search_q
 assert res.context['total_matches'] >= 1
 print(f"  [PASS] 1: Search by title successful ({res.context['total_matches']} matches found)")
 
-# ── 2. FILTER BY GENRE ──
+# -- 2. FILTER BY GENRE --
 print("\n[2] Testing Filter by Genre...")
 for genre_name in ['Action', 'Sci-Fi', 'Drama']:
     res = client.get(f'/movies/?genre={genre_name}')
@@ -45,7 +45,7 @@ for genre_name in ['Action', 'Sci-Fi', 'Drama']:
         assert any(genre_name.lower() in g for g in genres), f"Movie {m.name} does not have genre {genre_name}"
 print("  [PASS] 2: Genre filtering strictly matches movies containing requested genre")
 
-# ── 3. FILTER BY LANGUAGE ──
+# -- 3. FILTER BY LANGUAGE --
 print("\n[3] Testing Filter by Language...")
 for lang in ['English', 'Telugu']:
     res = client.get(f'/movies/?language={lang}')
@@ -56,7 +56,7 @@ for lang in ['English', 'Telugu']:
             assert any(lang.lower() == l for l in langs)
 print("  [PASS] 3: Language filtering strictly matches movies in requested language")
 
-# ── 4. FILTER BY CITY ──
+# -- 4. FILTER BY CITY --
 print("\n[4] Testing Filter by City...")
 cities = ['Hyderabad', 'Mumbai']
 for c in cities:
@@ -67,7 +67,7 @@ for c in cities:
             assert m.theaters.filter(city__iexact=c).exists()
 print("  [PASS] 4: City filtering strictly matches movies screening in selected city")
 
-# ── 5. FILTER BY THEATER ──
+# -- 5. FILTER BY THEATER --
 print("\n[5] Testing Filter by Cinema / Theater...")
 theaters = ['PVR', 'AMB', 'INOX']
 for th in theaters:
@@ -78,7 +78,7 @@ for th in theaters:
             assert m.theaters.filter(name__icontains=th).exists()
 print("  [PASS] 5: Cinema theater filtering strictly matches movies screening at selected theater chain")
 
-# ── 6. FILTER BY RELEASE DATE / STATUS ──
+# -- 6. FILTER BY RELEASE DATE / STATUS --
 print("\n[6] Testing Filter by Release Date / Status...")
 res_now = client.get('/movies/?release=now_showing')
 assert res_now.status_code == 200
@@ -92,7 +92,7 @@ for m in res_up.context['movies']:
     assert m.release_date > today, f"Movie {m.name} release {m.release_date} <= {today}"
 print("  [PASS] 6: Release Date filter (Now Showing / Upcoming) works accurately")
 
-# ── 7. FILTER BY RATING THRESHOLD ──
+# -- 7. FILTER BY RATING THRESHOLD --
 print("\n[7] Testing Filter by Minimum Rating...")
 for threshold in [7.0, 8.0, 8.5]:
     res = client.get(f'/movies/?rating={threshold}')
@@ -101,7 +101,7 @@ for threshold in [7.0, 8.0, 8.5]:
         assert float(m.rating) >= threshold, f"Movie {m.name} rating {m.rating} < {threshold}"
 print("  [PASS] 7: Rating threshold filter strictly enforces minimum rating cutoff")
 
-# ── 8. FILTER BY SHOW TIMINGS ──
+# -- 8. FILTER BY SHOW TIMINGS --
 print("\n[8] Testing Filter by Show Timings...")
 timing_ranges = {
     'morning': (6, 12),
@@ -116,7 +116,7 @@ for slot, (start_h, end_h) in timing_ranges.items():
             assert m.theaters.filter(time__hour__gte=start_h, time__hour__lt=end_h).exists()
 print("  [PASS] 8: Show timings filter (Morning, Afternoon, Evening, Night) verified")
 
-# ── 9. FILTER BY TICKET PRICE ──
+# -- 9. FILTER BY TICKET PRICE --
 print("\n[9] Testing Filter by Max Ticket Price...")
 for max_p in [200, 250, 350, 500]:
     res = client.get(f'/movies/?max_price={max_p}')
@@ -126,7 +126,7 @@ for max_p in [200, 250, 350, 500]:
             assert m.theaters.filter(ticket_price__lte=max_p).exists()
 print("  [PASS] 9: Ticket price filter verified against theater ticket prices")
 
-# ── 10. MULTI-CRITERIA SORTING ──
+# -- 10. MULTI-CRITERIA SORTING --
 print("\n[10] Testing Multi-Criteria Sorting...")
 # Popularity
 res_pop = client.get('/movies/?sort=popularity')
@@ -155,7 +155,7 @@ res_p_desc = client.get('/movies/?sort=price_desc')
 assert res_p_desc.status_code == 200
 print("  [PASS] 10: Multi-criteria sorting verified (Popularity, Newest Releases, Rating, Price Asc/Desc)")
 
-# ── 11. DYNAMIC MATCHING MOVIES COUNTER ──
+# -- 11. DYNAMIC MATCHING MOVIES COUNTER --
 print("\n[11] Testing Dynamic Matching Movies Counter...")
 res_all = client.get('/movies/')
 total_all = res_all.context['total_matches']
@@ -166,7 +166,7 @@ assert total_action <= total_all
 assert b'Movies Found' in res_action.content
 print(f"  [PASS] 11: Dynamic matching counter updates dynamically ({total_action} Action movies vs {total_all} total)")
 
-# ── 12. PAGINATION FOR LARGE DATASETS ──
+# -- 12. PAGINATION FOR LARGE DATASETS --
 print("\n[12] Testing Pagination Support...")
 assert hasattr(res_all.context['movies'], 'paginator')
 paginator = res_all.context['movies'].paginator
@@ -175,7 +175,7 @@ page2_res = client.get('/movies/?page=2')
 assert page2_res.status_code == 200
 print(f"  [PASS] 12: Pagination verified with 6 items/page across {paginator.num_pages} pages")
 
-# ── 13. RECOMMENDED FOR YOU ENGINE ──
+# -- 13. RECOMMENDED FOR YOU ENGINE --
 print("\n[13] Testing 'Recommended for You' Engine...")
 # Sub-test 13a: Booking History Strategy
 action_genre, _ = Genre.objects.get_or_create(name='Action')

@@ -20,9 +20,9 @@ def run_comprehensive_e2e_test():
 
     client = Client()
 
-    # ─────────────────────────────────────────────────────────────
+    # -------------------------------------------------------------
     # 1. HOME PAGE VERIFICATION
-    # ─────────────────────────────────────────────────────────────
+    # -------------------------------------------------------------
     print("\n[1] Testing Home Page Rendering & Movie Links...")
     resp = client.get('/')
     assert resp.status_code == 200, f"Expected 200, got {resp.status_code}"
@@ -32,9 +32,9 @@ def run_comprehensive_e2e_test():
     assert "Recommended" in content or "Movies" in content
     print("  [OK] Home page renders properly with movies and recommendation feed.")
 
-    # ─────────────────────────────────────────────────────────────
+    # -------------------------------------------------------------
     # 2. REGISTRATION FLOW
-    # ─────────────────────────────────────────────────────────────
+    # -------------------------------------------------------------
     print("\n[2] Testing User Registration Flow...")
     unique_user = f"user_{uuid.uuid4().hex[:8]}"
     email = f"{unique_user}@example.com"
@@ -53,9 +53,9 @@ def run_comprehensive_e2e_test():
     assert created_user.email == email
     print(f"  [OK] User '{unique_user}' registered successfully and auto-logged in to profile.")
 
-    # ─────────────────────────────────────────────────────────────
+    # -------------------------------------------------------------
     # 3. LOGOUT FLOW (POST & GET)
-    # ─────────────────────────────────────────────────────────────
+    # -------------------------------------------------------------
     print("\n[3] Testing Logout Flow...")
     # Test POST logout
     resp = client.post('/logout/')
@@ -75,9 +75,9 @@ def run_comprehensive_e2e_test():
     assert resp_prof.status_code == 302
     print("  [OK] Both POST and GET logout work cleanly and clear user session.")
 
-    # ─────────────────────────────────────────────────────────────
+    # -------------------------------------------------------------
     # 4. LOGIN FLOW (VALID & INVALID, USERNAME & EMAIL)
-    # ─────────────────────────────────────────────────────────────
+    # -------------------------------------------------------------
     print("\n[4] Testing Login Flow (Invalid, Username, and Email)...")
     # Sub-test 4a: Invalid credentials
     resp_bad = client.post('/login/', {'username': unique_user, 'password': 'WrongPassword999!'})
@@ -98,9 +98,9 @@ def run_comprehensive_e2e_test():
     assert resp_login_email.status_code == 302, f"Login failed for email, got {resp_login_email.status_code}"
     print("  [OK] Sub-test 4c: Login with email address succeeds.")
 
-    # ─────────────────────────────────────────────────────────────
+    # -------------------------------------------------------------
     # 5. PROFILE PAGE & PROFILE UPDATE
-    # ─────────────────────────────────────────────────────────────
+    # -------------------------------------------------------------
     print("\n[5] Testing Profile Page View and Edit...")
     resp_prof = client.get('/profile/')
     assert resp_prof.status_code == 200
@@ -121,9 +121,9 @@ def run_comprehensive_e2e_test():
     assert created_user.email == new_email
     print("  [OK] Profile displays user ledger and allows updating profile details.")
 
-    # ─────────────────────────────────────────────────────────────
+    # -------------------------------------------------------------
     # 6. CHANGE PASSWORD FLOW
-    # ─────────────────────────────────────────────────────────────
+    # -------------------------------------------------------------
     print("\n[6] Testing Change Password Flow...")
     resp_pw_page = client.get('/reset-password/')
     assert resp_pw_page.status_code == 200
@@ -148,9 +148,9 @@ def run_comprehensive_e2e_test():
     assert resp_new.status_code == 302, "New password failed to log in"
     print("  [OK] Password changed successfully, old password invalidated, new password logs in.")
 
-    # ─────────────────────────────────────────────────────────────
+    # -------------------------------------------------------------
     # 7. BOOKING TICKETS WORKFLOW (TASK 1-5 INTEGRATED)
-    # ─────────────────────────────────────────────────────────────
+    # -------------------------------------------------------------
     print("\n[7] Testing Complete Booking Tickets Workflow...")
     # Find an active movie and theater
     theater = Theater.objects.filter(seats__isnull=False).first()
@@ -243,9 +243,9 @@ def run_comprehensive_e2e_test():
     assert new_order_id in prof2_html or chosen_seat.seat_number in prof2_html
     print("  [OK] Sub-test 7i: Profile booking history & transaction ledger updated.")
 
-    # ─────────────────────────────────────────────────────────────
+    # -------------------------------------------------------------
     # 8. DJANGO ADMIN PANEL ACCESS
-    # ─────────────────────────────────────────────────────────────
+    # -------------------------------------------------------------
     print("\n[8] Testing Admin Panel Access...")
     admin_client = Client()
     admin_client.login(username='admin', password='admin123')
