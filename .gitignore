@@ -9,4 +9,5 @@ venv/
 staticfiles/
 media/tickets/
 *.log
+celerybeat-schedule*
 .vscode/

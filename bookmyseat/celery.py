@@ -12,3 +12,8 @@ from django.conf import settings
 if hasattr(settings, 'CELERY_BEAT_SCHEDULE'):
     app.conf.beat_schedule = settings.CELERY_BEAT_SCHEDULE
 
+try:
+    import movies.tasks  # noqa: F401
+except Exception:
+    pass
+
