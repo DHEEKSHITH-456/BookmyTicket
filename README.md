@@ -66,6 +66,10 @@ As required by the project guidelines for evaluation, pre-configured test accoun
   - 🔴 **Booked**: Confirmed and permanently locked.
   - 🔵 **Your Selection**: Real-time counter and total price calculation.
 - **2-Minute Temporary Reservation Engine**: Selected seats remain reserved for precisely 120 seconds (`reserved_until`), after which they are automatically released if payment is abandoned.
+- **Automated Background Expiration (Zero Traffic Required)**:
+  - **Celery Beat Periodic Scheduler**: Configured `CELERY_BEAT_SCHEDULE` triggers `movies.tasks.cleanup_expired_reservations_task` every 10 seconds to autonomously release expired seat holds in the background.
+  - **Built-in Daemon Worker Thread**: `SeatReservationCleanupWorker` runs inside `movies/apps.py` during `runserver`/WSGI execution, guaranteeing automatic seat releases without requiring Celery Beat to be launched separately.
+  - **Management Command**: `python manage.py cleanup_expired_seats` supports one-off execution and continuous background loop (`--loop --interval 10`).
 - **Modify Selection Pre-Payment**: Users can release held seats and select new seats before proceeding to payment.
 - **Concurrency & Race Condition Prevention**: Database transactions with `select_for_update()` ensure atomic seat reservation; multiple simultaneous booking attempts never result in duplicate reservations.
 - **Live Availability Polling API**: `/movies/theater/<id>/seats/live/` powers real-time UI synchronization without requiring page refreshes.

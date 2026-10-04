@@ -357,6 +357,18 @@ t5_new_seat.refresh_from_db()
 assert t5_new_seat.reserved_until is not None, "New selection not held"
 print("  [PASS] 5.5: Pre-payment seat selection modification verified")
 
+# 6. Celery Beat periodic scheduler & automated background release
+from django.conf import settings
+from movies.tasks import cleanup_expired_reservations_task
+assert 'auto-release-expired-seat-reservations' in getattr(settings, 'CELERY_BEAT_SCHEDULE', {}), "CELERY_BEAT_SCHEDULE missing periodic task"
+t5_new_seat.reserved_until = timezone.now() - timedelta(seconds=10)
+t5_new_seat.save(update_fields=['reserved_until'])
+beat_result = cleanup_expired_reservations_task()
+assert beat_result['status'] == 'success' and beat_result['released_seats'] >= 1
+t5_new_seat.refresh_from_db()
+assert t5_new_seat.reserved_by is None and t5_new_seat.reserved_until is None, "Seat not auto-released by Celery Beat periodic task"
+print("  [PASS] 5.6: Celery Beat periodic task and background scheduler auto-release verified without HTTP requests")
+
 # Cleanup competitor
 competitor.delete()
 

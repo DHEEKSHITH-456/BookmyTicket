@@ -154,6 +154,32 @@ assert checkout_expired.status_code == 200
 assert "Your 2-minute seat reservation expired. Please re-select your seats." in checkout_expired.content.decode('utf-8')
 print(f"[PASS] 5b: Checkout screen auto-detects expired reservation and redirects with warning")
 
+# 5c: Celery Beat periodic task auto-release without HTTP requests
+from django.conf import settings
+from bookmyseat.celery import app as celery_app
+from movies.tasks import cleanup_expired_reservations_task
+
+# Verify Celery Beat configuration
+assert 'auto-release-expired-seat-reservations' in settings.CELERY_BEAT_SCHEDULE, "CELERY_BEAT_SCHEDULE missing periodic task"
+beat_entry = settings.CELERY_BEAT_SCHEDULE['auto-release-expired-seat-reservations']
+assert beat_entry['task'] == 'movies.tasks.cleanup_expired_reservations_task'
+assert beat_entry['schedule'] == 10.0
+
+# Reserve seat and let expiry pass
+s4.reserved_by = alice
+s4.reserved_until = timezone.now() - timedelta(seconds=10)
+s4.save(update_fields=['reserved_by', 'reserved_until'])
+
+# Execute Celery Beat periodic task directly in background
+task_res = cleanup_expired_reservations_task()
+assert task_res['status'] == 'success'
+assert task_res['released_seats'] >= 1
+
+s4.refresh_from_db()
+assert s4.reserved_by is None, "Seat must be auto-released by Celery Beat periodic task"
+assert s4.reserved_until is None
+print(f"[PASS] 5c: Celery Beat periodic schedule automatically freed expired seats in background (zero HTTP traffic)")
+
 print("\n--- TEST 6: Concurrency Safety Under Simultaneous Requests ---")
 # Both Alice and Bob attempt to book the exact same seat s6 simultaneously via 2 threads
 results = {}

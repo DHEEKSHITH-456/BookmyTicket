@@ -212,15 +212,17 @@ class Seat(models.Model):
   - 🟡 **Reserved**: Temporarily held by another user with live countdown.
   - 🔴 **Booked**: Confirmed and permanently locked.
   - 🔵 **Your Selection**: Real-time counter and total price calculation.
-- **2-Minute Temporary Reservation Engine**:
+- **2-Minute Temporary Reservation Engine & Automated Background Release**:
   - Selected seats remain reserved for precisely 120 seconds (`timezone.now() + timedelta(minutes=2)`).
-  - Background & on-the-fly expiration automatically frees seats if payment checkout is abandoned.
+  - **Celery Beat Periodic Scheduler**: Configured with `CELERY_BEAT_SCHEDULE` running `cleanup_expired_reservations_task` every 10 seconds to automatically release expired seats without requiring incoming HTTP traffic.
+  - **Persistent In-Process Background Daemon**: Implemented in `movies/apps.py` (`SeatReservationCleanupWorker`) running every 10 seconds during `manage.py runserver` or WSGI execution.
+  - **Management Command**: `python manage.py cleanup_expired_seats` with `--loop` mode for cron/systemd automation.
   - Users can freely modify seat selections before initiating checkout.
 - **Concurrency & Race Condition Prevention**:
   - Pure database transactions with `select_for_update()` ensure atomic seat reservation.
   - Multiple simultaneous users attempting to lock the same seat will never result in duplicate reservations or double-booking.
 - **Live Availability Polling API**:
-  - Dedicated endpoint `/movies/theater/<id>/seats/availability/` powers real-time UI synchronization without requiring full page reloads.
+  - Dedicated endpoint `/movies/theater/<id>/seats/live/` powers real-time UI synchronization without requiring full page reloads.
 
 ### 4.6 Task 6: Comprehensive Admin Dashboard & Business Intelligence
 - **Real-Time KPI Cards**:

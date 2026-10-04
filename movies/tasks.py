@@ -111,3 +111,21 @@ def generate_and_email_ticket(self, booking_ids, user_id):
         logger.error(f'Failed to generate/email ticket: {exc}', exc_info=True)
         # Celery will auto-retry based on autoretry_for and retry_backoff
         raise
+
+
+@shared_task(name='movies.tasks.cleanup_expired_reservations_task')
+def cleanup_expired_reservations_task():
+    """
+    Task 5: Periodic Celery Beat task to automatically release expired seat reservations
+    every 10 seconds without requiring any incoming HTTP requests.
+    """
+    from movies.payment_service import release_expired_reservations
+    try:
+        released_count = release_expired_reservations()
+        if released_count > 0:
+            logger.info(f"Celery Beat auto-released {released_count} expired seat reservation(s).")
+        return {'status': 'success', 'released_seats': released_count}
+    except Exception as exc:
+        logger.error(f"Error in Celery Beat seat cleanup task: {exc}", exc_info=True)
+        return {'status': 'error', 'message': str(exc)}
+
